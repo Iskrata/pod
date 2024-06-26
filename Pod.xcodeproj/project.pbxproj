@@ -7,13 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B149B95E2C28124000B13AFA /* LoadAudioFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */; };
+		B149B9602C282BEB00B13AFA /* SongView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95F2C282BEB00B13AFA /* SongView.swift */; };
+		B15790A42C2C7A2100179E62 /* SongViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15790A32C2C7A2100179E62 /* SongViewModel.swift */; };
 		B1BBDD2A2C26C37F00C062D8 /* PodApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD292C26C37F00C062D8 /* PodApp.swift */; };
 		B1BBDD2C2C26C37F00C062D8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD2B2C26C37F00C062D8 /* ContentView.swift */; };
 		B1BBDD2E2C26C38000C062D8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1BBDD2D2C26C38000C062D8 /* Assets.xcassets */; };
 		B1BBDD312C26C38000C062D8 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1BBDD302C26C38000C062D8 /* Preview Assets.xcassets */; };
-		B1BBDD3C2C26C38000C062D8 /* PodTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD3B2C26C38000C062D8 /* PodTests.swift */; };
-		B1BBDD462C26C38000C062D8 /* PodUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD452C26C38000C062D8 /* PodUITests.swift */; };
-		B1BBDD482C26C38000C062D8 /* PodUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD472C26C38000C062D8 /* PodUITestsLaunchTests.swift */; };
+		B1BBDD562C26C4B700C062D8 /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD552C26C4B700C062D8 /* Song.swift */; };
+		B1BBDD582C27588E00C062D8 /* AudioPlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD572C27588E00C062D8 /* AudioPlayerViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +36,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadAudioFiles.swift; sourceTree = "<group>"; };
+		B149B95F2C282BEB00B13AFA /* SongView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongView.swift; sourceTree = "<group>"; };
+		B15790A32C2C7A2100179E62 /* SongViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongViewModel.swift; sourceTree = "<group>"; };
 		B1BBDD262C26C37F00C062D8 /* Pod.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pod.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1BBDD292C26C37F00C062D8 /* PodApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodApp.swift; sourceTree = "<group>"; };
 		B1BBDD2B2C26C37F00C062D8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -41,10 +46,9 @@
 		B1BBDD302C26C38000C062D8 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B1BBDD322C26C38000C062D8 /* Pod.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pod.entitlements; sourceTree = "<group>"; };
 		B1BBDD372C26C38000C062D8 /* PodTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PodTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		B1BBDD3B2C26C38000C062D8 /* PodTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodTests.swift; sourceTree = "<group>"; };
 		B1BBDD412C26C38000C062D8 /* PodUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PodUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		B1BBDD452C26C38000C062D8 /* PodUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodUITests.swift; sourceTree = "<group>"; };
-		B1BBDD472C26C38000C062D8 /* PodUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		B1BBDD552C26C4B700C062D8 /* Song.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
+		B1BBDD572C27588E00C062D8 /* AudioPlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,8 +80,6 @@
 			isa = PBXGroup;
 			children = (
 				B1BBDD282C26C37F00C062D8 /* Pod */,
-				B1BBDD3A2C26C38000C062D8 /* PodTests */,
-				B1BBDD442C26C38000C062D8 /* PodUITests */,
 				B1BBDD272C26C37F00C062D8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -95,8 +97,13 @@
 		B1BBDD282C26C37F00C062D8 /* Pod */ = {
 			isa = PBXGroup;
 			children = (
+				B1BBDD542C26C49900C062D8 /* Model */,
 				B1BBDD292C26C37F00C062D8 /* PodApp.swift */,
 				B1BBDD2B2C26C37F00C062D8 /* ContentView.swift */,
+				B149B95F2C282BEB00B13AFA /* SongView.swift */,
+				B15790A32C2C7A2100179E62 /* SongViewModel.swift */,
+				B1BBDD572C27588E00C062D8 /* AudioPlayerViewModel.swift */,
+				B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */,
 				B1BBDD2D2C26C38000C062D8 /* Assets.xcassets */,
 				B1BBDD322C26C38000C062D8 /* Pod.entitlements */,
 				B1BBDD2F2C26C38000C062D8 /* Preview Content */,
@@ -112,21 +119,12 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		B1BBDD3A2C26C38000C062D8 /* PodTests */ = {
+		B1BBDD542C26C49900C062D8 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				B1BBDD3B2C26C38000C062D8 /* PodTests.swift */,
+				B1BBDD552C26C4B700C062D8 /* Song.swift */,
 			);
-			path = PodTests;
-			sourceTree = "<group>";
-		};
-		B1BBDD442C26C38000C062D8 /* PodUITests */ = {
-			isa = PBXGroup;
-			children = (
-				B1BBDD452C26C38000C062D8 /* PodUITests.swift */,
-				B1BBDD472C26C38000C062D8 /* PodUITestsLaunchTests.swift */,
-			);
-			path = PodUITests;
+			path = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -259,6 +257,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B15790A42C2C7A2100179E62 /* SongViewModel.swift in Sources */,
+				B1BBDD582C27588E00C062D8 /* AudioPlayerViewModel.swift in Sources */,
+				B149B95E2C28124000B13AFA /* LoadAudioFiles.swift in Sources */,
+				B1BBDD562C26C4B700C062D8 /* Song.swift in Sources */,
+				B149B9602C282BEB00B13AFA /* SongView.swift in Sources */,
 				B1BBDD2C2C26C37F00C062D8 /* ContentView.swift in Sources */,
 				B1BBDD2A2C26C37F00C062D8 /* PodApp.swift in Sources */,
 			);
@@ -268,7 +271,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B1BBDD3C2C26C38000C062D8 /* PodTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,8 +278,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B1BBDD482C26C38000C062D8 /* PodUITestsLaunchTests.swift in Sources */,
-				B1BBDD462C26C38000C062D8 /* PodUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -421,10 +421,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Pod/Pod.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Pod/Preview Content\"";
+				DEVELOPMENT_TEAM = B7949NL6NG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -446,10 +448,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Pod/Pod.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Pod/Preview Content\"";
+				DEVELOPMENT_TEAM = B7949NL6NG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

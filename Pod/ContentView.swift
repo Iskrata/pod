@@ -72,7 +72,7 @@ struct ContentView: View {
                         Spacer()
                         
                         Button(action: {
-                            songView.playPause()
+                            songView.playOrPause()
                         }) {
                             Image(systemName: "playpause.fill")
                                 .foregroundColor(.white)

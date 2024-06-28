@@ -12,8 +12,7 @@ struct SongView: View {
     @ObservedObject var viewModel: SongViewModel
     
     var body: some View {
-        Text(viewModel.audioPlayerViewModel.isPlaying ? "1" : "2").foregroundStyle(.black)
-        MenuBar(isPlaying: viewModel.audioPlayerViewModel.isPlaying)
+        MenuBar(isPlaying: viewModel.isPlaying)
         
         HStack(spacing: 20) {
             Image("tyler-the-creator-album")
@@ -23,14 +22,14 @@ struct SongView: View {
             Spacer()
         }.padding()
         
-        SongProgress(currentTime: viewModel.audioPlayerViewModel.formattedCurrentTime, duration: viewModel.audioPlayerViewModel.formattedDuration, audioViewModel: viewModel.audioPlayerViewModel)
+        SongProgress(currentTime: viewModel.formattedCurrentTime, duration: viewModel.formattedDuration, viewModel: viewModel)
     }
 }
 
 struct SongProgress: View {
     var currentTime: String
     var duration: String
-    var audioViewModel: AudioPlayerViewModel
+    var viewModel: SongViewModel
     
     var body: some View {
         HStack {
@@ -39,7 +38,7 @@ struct SongProgress: View {
                 .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                 .frame(width: 40, alignment: .leading)
             
-            ProgressView(value:audioViewModel.currentTime / audioViewModel.duration)
+            ProgressView(value:viewModel.currentTime / viewModel.duration)
                 .border(Color.gray, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
                 .cornerRadius(/*@START_MENU_TOKEN@*/3.0/*@END_MENU_TOKEN@*/)
             

@@ -15,14 +15,51 @@ struct SongView: View {
         MenuBar(isPlaying: viewModel.isPlaying)
         
         HStack(spacing: 20) {
-            Image("tyler-the-creator-album")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+            VStack {
+                Image("tyler-the-creator-album")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .modifier(PerspectiveTransformEffect())
+                
+//                ReflectionView(imageName: "tyler-the-creator-album")
+            }
+            
             SongInfo(title: viewModel.getCurrentSongTitle(), artist: viewModel.getCurrentSongArtist(), album: viewModel.getCurrentSongAlbum())
             Spacer()
         }.padding()
         
         SongProgress(currentTime: viewModel.formattedCurrentTime, duration: viewModel.formattedDuration, viewModel: viewModel)
+    }
+}
+
+struct PerspectiveTransformEffect: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .rotation3DEffect(
+                .degrees(15),
+                axis: (x: 0, y: 1, z: 0),
+                anchor: .center,
+                anchorZ: 0,
+                perspective: 0.5
+            )
+    }
+}
+
+struct ReflectionView: View {
+    let imageName: String
+    
+    var body: some View {
+        VStack {
+            Image(imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .scaleEffect(x: 1, y: -1, anchor: .center)
+                .opacity(0.5)
+                .mask(LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.6), Color.black.opacity(0)]), startPoint: .top, endPoint: .bottom))
+                .frame(height: 50) // Adjust the height as needed
+        }
+        .frame(width: 100) // Adjust the width as needed
+        .clipped()
     }
 }
 

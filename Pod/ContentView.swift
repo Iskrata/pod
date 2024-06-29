@@ -13,7 +13,6 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-//            Color.blue
             VStack {
                 Rectangle()
                     .fill(Color.white)
@@ -31,59 +30,93 @@ struct ContentView: View {
                     Circle()
                         .fill(.wheel)
                         .frame(width: 200, height: 200)
-                    
-                    VStack {
-                        Button(action: {
-                        }) {
-                            Text("MENU")
-                                .foregroundColor(.white)
-                                .padding()
-                        }
-                        
-                        Spacer()
-                        
-                        HStack (spacing: 5) {
+                        .overlay(VStack {
                             Button(action: {
-                                songView.prevSong()
                             }) {
-                                Image(systemName: "backward.fill")
-                                    .foregroundColor(.white)
-                                    .padding()
+                                VStack {
+                                    Image("menu")
+                                        .resizable()
+                                        .scaledToFit()
+                                    
+                                    Spacer()
+                                }
+                                
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .frame(width: 40.0, height: 40.0)
+                                                        
+                            HStack (spacing: 5) {
+                                Spacer()
+                                
+                                Button(action: {
+                                    songView.prevSong()
+                                }) {
+                                    HStack(spacing: 0) {
+                                        Rectangle()
+                                            .foregroundColor(.wheelButton)
+                                            .frame(width: 3, height: 15)
+                                        Image("left")
+                                        Image("left")
+                                    }
+                                    
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .frame(width: 40.0, height: 40.0)
+
+                                Spacer()
+                                
+                                Button(action: {}) {
+                                    Circle()
+                                        .fill(.base)
+                                        .frame(width: 80, height: 80)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+
+                                Spacer()
+                                
+                                Button(action: {
+                                    songView.nextSong()
+                                }) {
+                                    HStack(spacing: 0) {
+                                        Image("right")
+                                        Image("right")
+                                        Rectangle()
+                                            .foregroundColor(.wheelButton)
+                                            .frame(width: 3, height: 15)
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .frame(width: 40.0, height: 40.0)
+
+                                Spacer()
                             }
                             
                             
                             Button(action: {
-                                // Center button action
+                                songView.playOrPause()
                             }) {
-                                Circle()
-                                    .fill(Color.white)
-                                    .frame(width: 44, height: 44)
+                                VStack {
+                                    Spacer()
+                                    HStack(spacing: 5) {
+                                        Image("right")
+
+                                        Rectangle()
+                                            .foregroundColor(.wheelButton)
+                                            .frame(width: 3, height: 15)
+                                        Rectangle()
+                                            .foregroundColor(.wheelButton)
+                                            .frame(width: 3, height: 15)
+                                    }
+                                }
                             }
-                            
-                            Button(action: {
-                                songView.nextSong()
-                            }) {
-                                Image(systemName: "forward.fill")
-                                    .foregroundColor(.white)
-                                    .padding()
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            songView.playOrPause()
-                        }) {
-                            Image(systemName: "playpause.fill")
-                                .foregroundColor(.white)
-                                .padding()
-                        }
-                    }
-                    .padding(30)
+                            .buttonStyle(PlainButtonStyle())
+                            .frame(width: 40.0, height: 40.0)
+
+                        }.padding(12)).padding(30)
                 }
             }
             .padding()
-        }
+        }.background(.base)
     }
     
     

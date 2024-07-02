@@ -9,17 +9,24 @@ import Combine
 import Foundation
 import AVFoundation
 
-class SongViewModel: ObservableObject {
+class SongViewModel: ProtocolView {
     var audioPlayer: AVAudioPlayer?
     private var timer: Timer?
     
-    @Published private var songs: [Song]
-    @Published private var currentSong: Int
+    @Published var songs: [Song] = [Song(title: "Example Song", pathToAudioFile: "")]
+    @Published var currentSong: Int = 0
     @Published private var update: Int = 0
     
     @Published var isPlaying = false
     @Published var currentTime: TimeInterval = 0.0
     var duration: TimeInterval = 0.0
+    
+//    init(currentSong: Int = 0) {
+//        self.songs = loadAudioFiles(from: loadUrl)
+//        self.currentSong = currentSong
+//        
+//        self.loadAudioFile(songs[currentSong].pathToAudioFile)
+//    }
     
     func loadAudioFile(_ path: String) {
         do {
@@ -31,21 +38,6 @@ class SongViewModel: ObservableObject {
             currentTime = 0
         } catch {
             print("Failed to load audio file: \(error.localizedDescription)")
-        }
-    }
-    
-    func playOrPause() {
-        guard let player = audioPlayer else { return }
-        
-        if player.isPlaying {
-            player.pause()
-            isPlaying = false
-            stopTimer()
-        } else {
-            player.play()
-            isPlaying = true
-            
-            startTimer()
         }
     }
     
@@ -80,24 +72,6 @@ class SongViewModel: ObservableObject {
         return formatTime(duration)
     }
     
-    init(loadUrl: String, currentSong: Int = 0) {
-        self.songs = loadAudioFiles(from: loadUrl)
-        self.currentSong = currentSong
-        
-        self.loadAudioFile(songs[currentSong].pathToAudioFile)
-    }
-    
-    public func nextSong() {
-        currentSong = (currentSong - 1 + songs.count) % songs.count
-        self.loadAudioFile(songs[currentSong].pathToAudioFile)
-        self.playOrPause()
-    }
-    
-    public func prevSong() {
-        currentSong = (currentSong - 1 + songs.count) % songs.count
-        self.loadAudioFile(songs[currentSong].pathToAudioFile)
-        self.playOrPause()
-    }
     
     public func getCurrentSongTitle() -> String {
         return songs[currentSong].title;
@@ -109,5 +83,45 @@ class SongViewModel: ObservableObject {
     
     public func getCurrentSongAlbum() -> String? {
         return songs[currentSong].album;
+    }
+    
+    func nextClick() {
+        currentSong = (currentSong + 1) % songs.count
+        self.loadAudioFile(songs[currentSong].pathToAudioFile)
+        self.playPauseClick()
+    }
+
+    func prevClick() {
+        currentSong = (currentSong - 1 + songs.count) % songs.count
+        self.loadAudioFile(songs[currentSong].pathToAudioFile)
+        self.playPauseClick()
+    }
+    
+    func playPauseClick() {
+        guard let player = audioPlayer else { return }
+        
+        if player.isPlaying {
+            player.pause()
+            isPlaying = false
+            stopTimer()
+        } else {
+            player.play()
+            isPlaying = true
+            
+            startTimer()
+        }
+    }
+    
+    
+    func middleClick() {
+        
+    }
+    
+    func wheelUp() {
+        
+    }
+    
+    func wheelDown() {
+        
     }
 }

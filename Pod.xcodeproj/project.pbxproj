@@ -7,9 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B129C74D2C33E9E400E185C8 /* HomeDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */; };
 		B149B95E2C28124000B13AFA /* LoadAudioFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */; };
 		B149B9602C282BEB00B13AFA /* SongView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95F2C282BEB00B13AFA /* SongView.swift */; };
 		B15790A42C2C7A2100179E62 /* SongViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15790A32C2C7A2100179E62 /* SongViewModel.swift */; };
+		B19F79602C2FFD3900411F62 /* AlbumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F795F2C2FFD3900411F62 /* AlbumView.swift */; };
+		B19F79622C2FFEDA00411F62 /* Album.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F79612C2FFEDA00411F62 /* Album.swift */; };
+		B19F79662C30083400411F62 /* AlbumViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F79652C30083400411F62 /* AlbumViewModel.swift */; };
+		B19F79682C30125400411F62 /* ProtocolViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F79672C30125400411F62 /* ProtocolViewModel.swift */; };
+		B19F796A2C3025F100411F62 /* GlobalState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F79692C3025F100411F62 /* GlobalState.swift */; };
 		B1BBDD2A2C26C37F00C062D8 /* PodApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD292C26C37F00C062D8 /* PodApp.swift */; };
 		B1BBDD2C2C26C37F00C062D8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD2B2C26C37F00C062D8 /* ContentView.swift */; };
 		B1BBDD2E2C26C38000C062D8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1BBDD2D2C26C38000C062D8 /* Assets.xcassets */; };
@@ -35,9 +41,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDirectory.swift; sourceTree = "<group>"; };
 		B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadAudioFiles.swift; sourceTree = "<group>"; };
 		B149B95F2C282BEB00B13AFA /* SongView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongView.swift; sourceTree = "<group>"; };
 		B15790A32C2C7A2100179E62 /* SongViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongViewModel.swift; sourceTree = "<group>"; };
+		B19F795F2C2FFD3900411F62 /* AlbumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumView.swift; sourceTree = "<group>"; };
+		B19F79612C2FFEDA00411F62 /* Album.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Album.swift; sourceTree = "<group>"; };
+		B19F79652C30083400411F62 /* AlbumViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumViewModel.swift; sourceTree = "<group>"; };
+		B19F79672C30125400411F62 /* ProtocolViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolViewModel.swift; sourceTree = "<group>"; };
+		B19F79692C3025F100411F62 /* GlobalState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalState.swift; sourceTree = "<group>"; };
 		B1BBDD262C26C37F00C062D8 /* Pod.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pod.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1BBDD292C26C37F00C062D8 /* PodApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodApp.swift; sourceTree = "<group>"; };
 		B1BBDD2B2C26C37F00C062D8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -74,6 +86,34 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B129C74B2C33E9D200E185C8 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */,
+				B19F79692C3025F100411F62 /* GlobalState.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		B19F79632C30081800411F62 /* Song */ = {
+			isa = PBXGroup;
+			children = (
+				B149B95F2C282BEB00B13AFA /* SongView.swift */,
+				B15790A32C2C7A2100179E62 /* SongViewModel.swift */,
+				B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */,
+			);
+			path = Song;
+			sourceTree = "<group>";
+		};
+		B19F79642C30082100411F62 /* Album */ = {
+			isa = PBXGroup;
+			children = (
+				B19F795F2C2FFD3900411F62 /* AlbumView.swift */,
+				B19F79652C30083400411F62 /* AlbumViewModel.swift */,
+			);
+			path = Album;
+			sourceTree = "<group>";
+		};
 		B1BBDD1D2C26C37F00C062D8 = {
 			isa = PBXGroup;
 			children = (
@@ -95,12 +135,12 @@
 		B1BBDD282C26C37F00C062D8 /* Pod */ = {
 			isa = PBXGroup;
 			children = (
+				B129C74B2C33E9D200E185C8 /* Utils */,
+				B19F79642C30082100411F62 /* Album */,
+				B19F79632C30081800411F62 /* Song */,
 				B1BBDD542C26C49900C062D8 /* Model */,
 				B1BBDD292C26C37F00C062D8 /* PodApp.swift */,
 				B1BBDD2B2C26C37F00C062D8 /* ContentView.swift */,
-				B149B95F2C282BEB00B13AFA /* SongView.swift */,
-				B15790A32C2C7A2100179E62 /* SongViewModel.swift */,
-				B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */,
 				B1BBDD2D2C26C38000C062D8 /* Assets.xcassets */,
 				B1BBDD322C26C38000C062D8 /* Pod.entitlements */,
 				B1BBDD2F2C26C38000C062D8 /* Preview Content */,
@@ -119,7 +159,9 @@
 		B1BBDD542C26C49900C062D8 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				B19F79672C30125400411F62 /* ProtocolViewModel.swift */,
 				B1BBDD552C26C4B700C062D8 /* Song.swift */,
+				B19F79612C2FFEDA00411F62 /* Album.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -254,12 +296,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B129C74D2C33E9E400E185C8 /* HomeDirectory.swift in Sources */,
+				B19F79682C30125400411F62 /* ProtocolViewModel.swift in Sources */,
+				B19F79662C30083400411F62 /* AlbumViewModel.swift in Sources */,
 				B15790A42C2C7A2100179E62 /* SongViewModel.swift in Sources */,
 				B149B95E2C28124000B13AFA /* LoadAudioFiles.swift in Sources */,
 				B1BBDD562C26C4B700C062D8 /* Song.swift in Sources */,
 				B149B9602C282BEB00B13AFA /* SongView.swift in Sources */,
+				B19F79602C2FFD3900411F62 /* AlbumView.swift in Sources */,
+				B19F796A2C3025F100411F62 /* GlobalState.swift in Sources */,
 				B1BBDD2C2C26C37F00C062D8 /* ContentView.swift in Sources */,
 				B1BBDD2A2C26C37F00C062D8 /* PodApp.swift in Sources */,
+				B19F79622C2FFEDA00411F62 /* Album.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

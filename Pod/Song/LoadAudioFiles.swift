@@ -6,11 +6,26 @@
 //
 
 import AVFoundation
+import SwiftUI
 
 func loadAudioFiles(from directory: String) -> [Song] {
     var songs = [Song]()
     let fileManager = FileManager.default
     let url = URL(fileURLWithPath: directory)
+    
+    func getAlbumCover(from fileURL: URL) -> Image? {
+        do {
+            let asset = AVAsset(url: fileURL)
+            for metadataItem in asset.commonMetadata {
+                if metadataItem.commonKey?.rawValue == "artwork", let data = metadataItem.value as? Data, let nsImage = NSImage(data: data) {
+                    return Image(nsImage: nsImage)
+                }
+            }
+        } catch {
+            print("Error loading album cover: \(error.localizedDescription)")
+        }
+        return nil
+    }
     
     do {
         let fileURLs = try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
@@ -36,7 +51,9 @@ func loadAudioFiles(from directory: String) -> [Song] {
                     }
                 }
                 
-                let song = Song(title: title, artist: artist, album: album, pathToAudioFile: fileURL.path)
+                let coverImage = getAlbumCover(from: fileURL)
+                
+                let song = Song(title: title, artist: artist, album: album, pathToAudioFile: fileURL.path, coverImage: coverImage)
                 songs.append(song)
             }
         }

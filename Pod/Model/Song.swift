@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct Song: Identifiable {
     
@@ -14,14 +15,14 @@ struct Song: Identifiable {
     var artist: String?
     var album: String?
     var pathToAudioFile: String
-    var pathToImageFile: String?
+    var coverImage: Image?
     
-    init(title: String, artist: String? = nil, album: String? = nil, pathToAudioFile: String, pathToImageFile: String? = nil) {
+    init(title: String, artist: String? = nil, album: String? = nil, pathToAudioFile: String, coverImage: Image? = nil) {
         self.title = title
         self.artist = artist
         self.album = album
         self.pathToAudioFile = pathToAudioFile
-        self.pathToImageFile = pathToImageFile
+        self.coverImage = coverImage
     }
     
 }

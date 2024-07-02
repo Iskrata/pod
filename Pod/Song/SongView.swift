@@ -10,25 +10,41 @@ import SwiftUI
 
 struct SongView: View {
     @ObservedObject var viewModel: SongViewModel
+//    @EnvironmentObject var globalState: GlobalState
     
     var body: some View {
-        MenuBar(isPlaying: viewModel.isPlaying)
-        
-        HStack(spacing: 20) {
-            VStack {
-                Image("tyler-the-creator-album")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .modifier(PerspectiveTransformEffect())
-                
-//                ReflectionView(imageName: "tyler-the-creator-album")
-            }
+        VStack {
+            MenuBar(isPlaying: viewModel.isPlaying)
             
-            SongInfo(title: viewModel.getCurrentSongTitle(), artist: viewModel.getCurrentSongArtist(), album: viewModel.getCurrentSongAlbum())
-            Spacer()
-        }.padding()
+            HStack(spacing: 20) {
+                VStack {
+                    if let coverImage = viewModel.songs[viewModel.currentSong].coverImage {
+                        coverImage
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .modifier(PerspectiveTransformEffect())
+                    } else {
+                        Rectangle()
+                            .aspectRatio(contentMode: .fit)
+                    }
+//                    Image("tyler-the-creator-album")
+//                        .resizable()
+//                        .aspectRatio(contentMode: .fit)
+//                        .modifier(PerspectiveTransformEffect())
+                    
+    //                ReflectionView(imageName: "tyler-the-creator-album")
+                }
+                
+                SongInfo(title: viewModel.getCurrentSongTitle(), artist: viewModel.getCurrentSongArtist(), album: viewModel.getCurrentSongAlbum())
+                Spacer()
+            }.padding()
+            
+            SongProgress(currentTime: viewModel.formattedCurrentTime, duration: viewModel.formattedDuration, viewModel: viewModel)
+        }.onAppear(perform: {
+            viewModel.songs = loadAudioFiles(from: GlobalState.shared.selectedAlbumDir)
+            viewModel.loadAudioFile(viewModel.songs[viewModel.currentSong].pathToAudioFile)
+        })
         
-        SongProgress(currentTime: viewModel.formattedCurrentTime, duration: viewModel.formattedDuration, viewModel: viewModel)
     }
 }
 

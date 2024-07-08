@@ -14,4 +14,5 @@ protocol ProtocolView: ObservableObject {
     func middleClick()
     func wheelUp()
     func wheelDown()
+    func menuClick()
 }

@@ -15,9 +15,7 @@ class AlbumViewModel: ProtocolView {
     @Published var activeIndex: Int = 0
     
     private let hapticManager = NSHapticFeedbackManager.defaultPerformer
-    
-    //    @EnvironmentObject var globalState: GlobalState
-    
+        
     let fileManager = FileManager.default
     var excludeFolder = ["Music", "PioneerDJ"]
     
@@ -111,15 +109,20 @@ class AlbumViewModel: ProtocolView {
     func playPauseClick() {
     }
     
+    func menuClick() {
+    }
+    
     func middleClick() {
+        objectWillChange.send()
         GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
+        GlobalState.shared.activeView += 1
     }
     
     func wheelUp(){
         if (activeIndex > 0)
         {
             activeIndex -= 1
-            self.hapticManager.perform(.alignment, performanceTime: .default)
+            self.hapticManager.perform(.alignment, performanceTime: .drawCompleted)
         }
         GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
     }
@@ -128,7 +131,7 @@ class AlbumViewModel: ProtocolView {
         if (activeIndex < albums.count - 1)
         {
             activeIndex += 1
-            self.hapticManager.perform(.alignment, performanceTime: .default)
+            self.hapticManager.perform(.alignment, performanceTime: .drawCompleted)
         }
         GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
     }

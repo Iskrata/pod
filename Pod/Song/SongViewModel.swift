@@ -8,10 +8,13 @@
 import Combine
 import Foundation
 import AVFoundation
+import SwiftUI
+import MediaPlayer
 
 class SongViewModel: ProtocolView {
     var audioPlayer: AVAudioPlayer?
     private var timer: Timer?
+    private let hapticManager = NSHapticFeedbackManager.defaultPerformer
     
     @Published var songs: [Song] = [Song(title: "Example Song", pathToAudioFile: "")]
     @Published var currentSong: Int = 0
@@ -21,13 +24,6 @@ class SongViewModel: ProtocolView {
     @Published var currentTime: TimeInterval = 0.0
     var duration: TimeInterval = 0.0
     
-//    init(currentSong: Int = 0) {
-//        self.songs = loadAudioFiles(from: loadUrl)
-//        self.currentSong = currentSong
-//        
-//        self.loadAudioFile(songs[currentSong].pathToAudioFile)
-//    }
-    
     func loadAudioFile(_ path: String) {
         do {
             let url = URL(fileURLWithPath: path)
@@ -36,9 +32,24 @@ class SongViewModel: ProtocolView {
             startTimer()
             duration = audioPlayer?.duration ?? 0
             currentTime = 0
+            
+            self.updateNowPlayingInfo()
         } catch {
             print("Failed to load audio file: \(error.localizedDescription)")
         }
+    }
+    
+    func updateNowPlayingInfo() {
+        
+        var nowPlayingInfo = [String: Any]()
+        nowPlayingInfo[MPMediaItemPropertyTitle] = songs[currentSong].title
+        nowPlayingInfo[MPMediaItemPropertyArtist] = songs[currentSong].artist
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = audioPlayer?.duration ?? 0.0
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = audioPlayer?.currentTime ?? 0.0
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = audioPlayer!.isPlaying ? 1.0 : 0.0
+//        nowPlayingInfo[MPMediaItemPropertyArtwork] = songs[currentSong].coverImage
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
     private func startTimer() {
@@ -56,6 +67,12 @@ class SongViewModel: ProtocolView {
     private func updateCurrentTime() {
         guard let player = audioPlayer else { return }
         self.currentTime = player.currentTime
+        self.updateNowPlayingInfo()
+        
+        if (player.currentTime >= player.duration - 1.0)
+        {
+            self.nextClick()
+        }
     }
     
     private func formatTime(_ time: TimeInterval) -> String {
@@ -118,10 +135,37 @@ class SongViewModel: ProtocolView {
     }
     
     func wheelUp() {
+        guard let player = audioPlayer else { return }
         
+        if (self.currentTime > 0.0) {
+            player.currentTime -= 5
+            self.currentTime -= 5
+            
+            if (self.currentTime < 0) {
+                self.currentTime = 0
+            }
+            self.hapticManager.perform(.levelChange, performanceTime: .default)
+        }
+
     }
     
     func wheelDown() {
-        
+        guard let player = audioPlayer else { return }
+        if (self.currentTime < self.duration) {
+            player.currentTime += 5
+            self.currentTime += 5
+            
+            if (self.currentTime > self.duration)
+            {
+                self.currentTime = self.duration
+            }
+            self.hapticManager.perform(.levelChange, performanceTime: .default)
+        }
+
+    }
+    
+    func menuClick() {
+        objectWillChange.send()
+        GlobalState.shared.activeView -= 1
     }
 }

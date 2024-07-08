@@ -27,12 +27,6 @@ struct SongView: View {
                         Rectangle()
                             .aspectRatio(contentMode: .fit)
                     }
-//                    Image("tyler-the-creator-album")
-//                        .resizable()
-//                        .aspectRatio(contentMode: .fit)
-//                        .modifier(PerspectiveTransformEffect())
-                    
-    //                ReflectionView(imageName: "tyler-the-creator-album")
                 }
                 
                 SongInfo(title: viewModel.getCurrentSongTitle(), artist: viewModel.getCurrentSongArtist(), album: viewModel.getCurrentSongAlbum())
@@ -43,6 +37,7 @@ struct SongView: View {
         }.onAppear(perform: {
             viewModel.songs = loadAudioFiles(from: GlobalState.shared.selectedAlbumDir)
             viewModel.loadAudioFile(viewModel.songs[viewModel.currentSong].pathToAudioFile)
+            viewModel.playPauseClick()
         })
         
     }

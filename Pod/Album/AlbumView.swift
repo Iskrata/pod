@@ -20,7 +20,7 @@ struct AlbumsView: View {
                         HStack(spacing: 20) {
                             ForEach(viewModel.albums.indices, id: \.self) { index in
                                 GeometryReader { innerGeometry in
-                                    VStack {
+                                    VStack(spacing: 10) {
                                         if let coverImage = viewModel.albums[index].coverImage {
                                             coverImage
                                                 .resizable()
@@ -33,9 +33,9 @@ struct AlbumsView: View {
                                                 .cornerRadius(2)
                                         }
                                         Text(viewModel.albums[index].name)
-                                            .font(.caption)
+                                            .font(.system(size: 13, weight: .heavy))
                                             .lineLimit(2)
-                                            .bold()
+                                            .multilineTextAlignment(.center)
                                     }
                                     .scaleEffect(viewModel.scale(for: innerGeometry.frame(in: .global), in: outerGeometry.frame(in: .global)))
                                     .onTapGesture {

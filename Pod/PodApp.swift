@@ -13,7 +13,11 @@ struct PodApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .fixedSize()
+                .preferredColorScheme(.light)
         }
+        .windowResizability(.contentSize)
+        
     }
 }
 

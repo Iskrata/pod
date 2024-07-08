@@ -8,8 +8,12 @@ import SwiftUI
 
 class GlobalState {
     static let shared = GlobalState()
-    var selectedAlbumDir = ""
-    var musicFolderDir = "\(URL.userHome.path)/Music"
+    
+    var selectedAlbumDir: String = ""
+    var musicFolderDir: String = "\(URL.userHome.path)/Music"
+    
+    var activeView: Int = 0
+    var viewCount: Int = 2
     
     private init() { }
 }

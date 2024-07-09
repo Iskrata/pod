@@ -12,7 +12,7 @@ class GlobalState {
     var selectedAlbumDir: String = ""
     var musicFolderDir: String = "\(URL.userHome.path)/Music"
     
-    var activeView: Int = 0
+    var activeView: Int = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? 0 : 2
     var viewCount: Int = 2
     
     private init() { }

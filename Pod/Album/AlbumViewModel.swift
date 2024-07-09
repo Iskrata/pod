@@ -119,6 +119,10 @@ class AlbumViewModel: ProtocolView {
     }
     
     func wheelUp(){
+        if albums.isEmpty {
+            return
+        }
+        
         if (activeIndex > 0)
         {
             activeIndex -= 1
@@ -128,6 +132,10 @@ class AlbumViewModel: ProtocolView {
     }
     
     func wheelDown(){
+        if albums.isEmpty {
+            return
+        }
+        
         if (activeIndex < albums.count - 1)
         {
             activeIndex += 1

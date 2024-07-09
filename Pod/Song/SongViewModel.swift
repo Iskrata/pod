@@ -32,6 +32,7 @@ class SongViewModel: ProtocolView {
             startTimer()
             duration = audioPlayer?.duration ?? 0
             currentTime = 0
+            audioPlayer?.volume = 0.6
             
             self.updateNowPlayingInfo()
         } catch {

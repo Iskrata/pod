@@ -11,11 +11,11 @@ import AppKit
 struct ContentView: View {
     @AppStorage("fontSize") var fontSize = 13.0
     
-    private var views: [any ProtocolView] {[albumView, songView]}
-    
+    private var views: [any ProtocolView] {[albumView, songView, onboardingView]}
     
     @StateObject private var songView = SongViewModel()
     @StateObject private var albumView = AlbumViewModel()
+    @StateObject private var onboardingView = OnboardingViewModel()
     
     @State private var lastAngle: Double?
     @State private var scrollDirections: [Double] = []
@@ -68,14 +68,17 @@ struct ContentView: View {
                     .frame(width: 320, height: 240)
                     .overlay(ZStack {
                         //                        Text("\(GlobalState.shared.activeView)").foregroundStyle(.red).zIndex(100)
-                        switch GlobalState.shared.activeView {
-                        case 0:
-                            AlbumsView(viewModel: views[0] as! AlbumViewModel)
-                        case 1:
-                            SongView(viewModel: views[1] as! SongViewModel)
-                        default:
-                            AlbumsView(viewModel: views[0] as! AlbumViewModel)
-                        }
+                            switch GlobalState.shared.activeView {
+                            case 0:
+                                AlbumsView(viewModel: views[0] as! AlbumViewModel)
+                            case 1:
+                                SongView(viewModel: views[1] as! SongViewModel)
+                            case 2:
+                                Onboarding(viewModel: views[2] as! OnboardingViewModel)
+                            default:
+                                AlbumsView(viewModel: views[0] as! AlbumViewModel)
+                            }
+                       
                     })
                     .border(Color.black, width: 4)
                     .shadow(radius: 10)
@@ -185,6 +188,9 @@ struct ContentView: View {
             }
             .padding()
         }.background(.base)
+            .onAppear(perform: {
+//                print(UserDefaults.standard.bool(forKey: "hasLaunchedBefore"))
+            })
     }
     
     

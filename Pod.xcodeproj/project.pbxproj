@@ -13,6 +13,9 @@
 		B149B9602C282BEB00B13AFA /* SongView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95F2C282BEB00B13AFA /* SongView.swift */; };
 		B151BBBB2C3419A900A27020 /* ClickWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B151BBBA2C3419A900A27020 /* ClickWheel.swift */; };
 		B15790A42C2C7A2100179E62 /* SongViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15790A32C2C7A2100179E62 /* SongViewModel.swift */; };
+		B19420FE2C3BDC7B00C918B5 /* Onboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19420FD2C3BDC7B00C918B5 /* Onboarding.swift */; };
+		B19421002C3BE33000C918B5 /* OnboardingScreenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19420FF2C3BE33000C918B5 /* OnboardingScreenModel.swift */; };
+		B19421032C3BE88600C918B5 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19421022C3BE88600C918B5 /* OnboardingViewModel.swift */; };
 		B19F79602C2FFD3900411F62 /* AlbumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F795F2C2FFD3900411F62 /* AlbumView.swift */; };
 		B19F79622C2FFEDA00411F62 /* Album.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F79612C2FFEDA00411F62 /* Album.swift */; };
 		B19F79662C30083400411F62 /* AlbumViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F79652C30083400411F62 /* AlbumViewModel.swift */; };
@@ -49,6 +52,9 @@
 		B149B95F2C282BEB00B13AFA /* SongView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongView.swift; sourceTree = "<group>"; };
 		B151BBBA2C3419A900A27020 /* ClickWheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickWheel.swift; sourceTree = "<group>"; };
 		B15790A32C2C7A2100179E62 /* SongViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongViewModel.swift; sourceTree = "<group>"; };
+		B19420FD2C3BDC7B00C918B5 /* Onboarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Onboarding.swift; sourceTree = "<group>"; };
+		B19420FF2C3BE33000C918B5 /* OnboardingScreenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScreenModel.swift; sourceTree = "<group>"; };
+		B19421022C3BE88600C918B5 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		B19F795F2C2FFD3900411F62 /* AlbumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumView.swift; sourceTree = "<group>"; };
 		B19F79612C2FFEDA00411F62 /* Album.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Album.swift; sourceTree = "<group>"; };
 		B19F79652C30083400411F62 /* AlbumViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumViewModel.swift; sourceTree = "<group>"; };
@@ -101,6 +107,15 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
+		B19421012C3BE85D00C918B5 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				B19420FD2C3BDC7B00C918B5 /* Onboarding.swift */,
+				B19421022C3BE88600C918B5 /* OnboardingViewModel.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		B19F79632C30081800411F62 /* Song */ = {
 			isa = PBXGroup;
 			children = (
@@ -141,6 +156,7 @@
 		B1BBDD282C26C37F00C062D8 /* Pod */ = {
 			isa = PBXGroup;
 			children = (
+				B19421012C3BE85D00C918B5 /* Onboarding */,
 				B129C74B2C33E9D200E185C8 /* Utils */,
 				B19F79642C30082100411F62 /* Album */,
 				B19F79632C30081800411F62 /* Song */,
@@ -168,6 +184,7 @@
 				B19F79672C30125400411F62 /* ProtocolViewModel.swift */,
 				B1BBDD552C26C4B700C062D8 /* Song.swift */,
 				B19F79612C2FFEDA00411F62 /* Album.swift */,
+				B19420FF2C3BE33000C918B5 /* OnboardingScreenModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -306,14 +323,17 @@
 				B129C74D2C33E9E400E185C8 /* HomeDirectory.swift in Sources */,
 				B19F79682C30125400411F62 /* ProtocolViewModel.swift in Sources */,
 				B19F79662C30083400411F62 /* AlbumViewModel.swift in Sources */,
+				B19421002C3BE33000C918B5 /* OnboardingScreenModel.swift in Sources */,
 				B15790A42C2C7A2100179E62 /* SongViewModel.swift in Sources */,
 				B149B95E2C28124000B13AFA /* LoadAudioFiles.swift in Sources */,
 				B1BBDD562C26C4B700C062D8 /* Song.swift in Sources */,
 				B149B9602C282BEB00B13AFA /* SongView.swift in Sources */,
+				B19421032C3BE88600C918B5 /* OnboardingViewModel.swift in Sources */,
 				B19F79602C2FFD3900411F62 /* AlbumView.swift in Sources */,
 				B19F796A2C3025F100411F62 /* GlobalState.swift in Sources */,
 				B1BBDD2C2C26C37F00C062D8 /* ContentView.swift in Sources */,
 				B129C74F2C340E7000E185C8 /* ViewState.swift in Sources */,
+				B19420FE2C3BDC7B00C918B5 /* Onboarding.swift in Sources */,
 				B1BBDD2A2C26C37F00C062D8 /* PodApp.swift in Sources */,
 				B19F79622C2FFEDA00411F62 /* Album.swift in Sources */,
 			);

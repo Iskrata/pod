@@ -16,6 +16,18 @@ struct AlbumsView: View {
             GeometryReader { outerGeometry in
                 VStack {
                     Spacer()
+                    if viewModel.albums.count == 0 {
+                        VStack (alignment: .center, spacing: 10) {
+                            Image(systemName: "magnifyingglass")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 30, height: 30)
+                            Text("No music found.").bold()
+                            Text("Move some mp3's into the Music folder on your Mac").font(.system(size: 10, design: .default))
+                            
+                        }.frame(width: 150)
+                        
+                    }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 20) {
                             ForEach(viewModel.albums.indices, id: \.self) { index in

@@ -81,7 +81,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-//        checkForUpdates()
+        #if DEBUG
+         // This code will be run while installing from Xcode
+        #else
+        checkForUpdates()
+        #endif
+        
         // Set up the window size here
         if let window = NSApplication.shared.windows.first {
             window.setContentSize(NSSize(width: 400, height: 600))

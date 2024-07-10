@@ -10,7 +10,7 @@ import SwiftUI
 
 struct SongView: View {
     @ObservedObject var viewModel: SongViewModel
-//    @EnvironmentObject var globalState: GlobalState
+    @StateObject private var settings = GlobalState.shared
     
     var body: some View {
         VStack {
@@ -35,7 +35,7 @@ struct SongView: View {
             
             SongProgress(currentTime: viewModel.formattedCurrentTime, duration: viewModel.formattedDuration, viewModel: viewModel)
         }.onAppear(perform: {
-            viewModel.songs = loadAudioFiles(from: GlobalState.shared.selectedAlbumDir)
+            viewModel.songs = loadAudioFiles(from: settings.selectedAlbumDir)
             viewModel.loadAudioFile(viewModel.songs[viewModel.currentSong].pathToAudioFile)
             viewModel.playPauseClick()
         })

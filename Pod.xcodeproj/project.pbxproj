@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B125689D2C3E628F00410782 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B125689C2C3E628F00410782 /* SettingsView.swift */; };
 		B129C74D2C33E9E400E185C8 /* HomeDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */; };
 		B129C74F2C340E7000E185C8 /* ViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129C74E2C340E7000E185C8 /* ViewState.swift */; };
 		B149B95E2C28124000B13AFA /* LoadAudioFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */; };
@@ -46,6 +47,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B125689C2C3E628F00410782 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDirectory.swift; sourceTree = "<group>"; };
 		B129C74E2C340E7000E185C8 /* ViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewState.swift; sourceTree = "<group>"; };
 		B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadAudioFiles.swift; sourceTree = "<group>"; };
@@ -166,6 +168,7 @@
 				B1BBDD2D2C26C38000C062D8 /* Assets.xcassets */,
 				B1BBDD322C26C38000C062D8 /* Pod.entitlements */,
 				B1BBDD2F2C26C38000C062D8 /* Preview Content */,
+				B125689C2C3E628F00410782 /* SettingsView.swift */,
 			);
 			path = Pod;
 			sourceTree = "<group>";
@@ -322,6 +325,7 @@
 				B151BBBB2C3419A900A27020 /* ClickWheel.swift in Sources */,
 				B129C74D2C33E9E400E185C8 /* HomeDirectory.swift in Sources */,
 				B19F79682C30125400411F62 /* ProtocolViewModel.swift in Sources */,
+				B125689D2C3E628F00410782 /* SettingsView.swift in Sources */,
 				B19F79662C30083400411F62 /* AlbumViewModel.swift in Sources */,
 				B19421002C3BE33000C918B5 /* OnboardingScreenModel.swift in Sources */,
 				B15790A42C2C7A2100179E62 /* SongViewModel.swift in Sources */,

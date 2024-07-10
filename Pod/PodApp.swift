@@ -20,6 +20,10 @@ struct PodApp: App {
         }
         .windowResizability(.contentSize)
         
+        
+        Settings {
+            SettingsView()
+        }
     }
 }
 
@@ -77,7 +81,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        checkForUpdates()
+//        checkForUpdates()
         // Set up the window size here
         if let window = NSApplication.shared.windows.first {
             window.setContentSize(NSSize(width: 400, height: 600))

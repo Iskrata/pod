@@ -23,24 +23,28 @@ struct SettingsView: View {
 struct GeneralSettingsView: View {
     @State private var showFolderPicker = false
     @StateObject private var settings = GlobalState.shared
-
+    
     var body: some View {
         HStack {
-            Text("Music Folder: \(settings.musicFolderDir.isEmpty ? "Not Selected" : settings.musicFolderDir)")
-                            .padding()
-                        
-                        Button(action: {
-                            showFolderPicker.toggle()
-                        }) {
-                            Text("Select Music Folder")
-                        }
-                        .padding()
+            Text("Music Folder:")
+                .padding()
+            VStack {
+                Text("\(settings.musicFolderDir.isEmpty ? "Not Selected" : settings.musicFolderDir)")
+                Button(action: {
+                    showFolderPicker.toggle()
+                }) {
+                    Text("Select Music Folder")
+                }
+                .padding()
+            }
+            
             
         }.fileImporter(isPresented: $showFolderPicker, allowedContentTypes: [.folder], allowsMultipleSelection: false) { result in
             switch result {
             case .success(let urls):
                 if let url = urls.first {
                     if url.startAccessingSecurityScopedResource() {
+                        
                         settings.musicFolderDir = url.path
                         saveFolderBookmark(url: url)
                         url.stopAccessingSecurityScopedResource()
@@ -53,11 +57,11 @@ struct GeneralSettingsView: View {
     }
     
     func saveFolderBookmark(url: URL) {
-            do {
-                let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
-                UserDefaults.standard.set(bookmarkData, forKey: "musicFolderBookmark")
-            } catch {
-                print("Failed to save bookmark data: \(error)")
-            }
+        do {
+            let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+            UserDefaults.standard.set(bookmarkData, forKey: "musicFolderBookmark")
+        } catch {
+            print("Failed to save bookmark data: \(error)")
         }
+    }
 }

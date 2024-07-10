@@ -11,7 +11,12 @@ class GlobalState: ObservableObject {
     
     var selectedAlbumDir: String = ""
     
-    @AppStorage("musicFolderPath") var musicFolderDir: String = "\(URL.userHome.path)/Music"
+//    @AppStorage("musicFolderPath") var musicFolderDir: String = "\(URL.userHome.path)/Music"
+    @Published var musicFolderDir: String = UserDefaults.standard.string(forKey: "musicFolderPath") ?? "\(URL.userHome.path)/Music" {
+            didSet {
+                UserDefaults.standard.set(musicFolderDir, forKey: "musicFolderPath")
+            }
+        }
     
     var activeView: Int = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? 0 : 2
     var viewCount: Int = 2

@@ -7,12 +7,16 @@
 
 import SwiftUI
 import AVFoundation
+import Combine
 
 class AlbumViewModel: ProtocolView {
-    @Published var loadUrl: String
+    @Published var loadUrl: String = ""
     @Published var albums: [Album] = []
     @Published var scrollOffset: CGFloat = 0
     @Published var activeIndex: Int = 0
+    
+    @ObservedObject var settings = GlobalState.shared
+    private var cancellables = Set<AnyCancellable>()
     
     private let hapticManager = NSHapticFeedbackManager.defaultPerformer
         
@@ -20,8 +24,15 @@ class AlbumViewModel: ProtocolView {
     var excludeFolder = ["Music", "PioneerDJ"]
     
     init() {
-        self.loadUrl = GlobalState.shared.musicFolderDir
+        self.loadUrl = settings.musicFolderDir
         self.loadDirectories()
+        
+        settings.$musicFolderDir
+                    .sink { [weak self] newFolderPath in
+                        self?.loadUrl = newFolderPath
+                        self?.loadDirectories()
+                    }
+                    .store(in: &cancellables)
     }
     
     func sortAlbums() {
@@ -50,6 +61,8 @@ class AlbumViewModel: ProtocolView {
     }
     
     func loadDirectories() {
+            albums.removeAll()
+        
             let url = URL(fileURLWithPath: loadUrl)
             loadDirectories(at: url)
             sortAlbums()

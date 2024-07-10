@@ -188,9 +188,6 @@ struct ContentView: View {
             }
             .padding()
         }.background(.base)
-            .onAppear(perform: {
-//                print(UserDefaults.standard.bool(forKey: "hasLaunchedBefore"))
-            })
     }
     
     

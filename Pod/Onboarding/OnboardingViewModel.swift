@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-class OnboardingViewModel: ProtocolView {
+class OnboardingViewModel: ProtocolView {    
     @Published var activeScreen: Int = 0
     private let hapticManager = NSHapticFeedbackManager.defaultPerformer
     

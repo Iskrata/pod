@@ -143,4 +143,3 @@ struct MenuBar: View {
         .shadow(radius: /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
     }
 }
-

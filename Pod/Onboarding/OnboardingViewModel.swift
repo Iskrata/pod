@@ -8,7 +8,11 @@
 import Foundation
 import SwiftUI
 
-class OnboardingViewModel: ProtocolView {    
+class OnboardingViewModel: ProtocolView {
+    var view: AnyView {
+           AnyView(Onboarding(viewModel: self))
+       }
+    
     @Published var activeScreen: Int = 0
     private let hapticManager = NSHapticFeedbackManager.defaultPerformer
     
@@ -19,7 +23,7 @@ class OnboardingViewModel: ProtocolView {
             self.activeScreen += 1
         } else {
             objectWillChange.send()
-            GlobalState.shared.activeView = 0
+            GlobalState.shared.activeView = .albums
         }
     }
 

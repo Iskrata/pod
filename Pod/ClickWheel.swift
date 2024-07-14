@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ClickWheel: View {
-    var views: [any ProtocolView]
+    var views: [Screen: any ProtocolView]
     
     @State private var lastAngle: Double?
     @State private var scrollDirections: [Double] = []
@@ -39,10 +39,10 @@ struct ClickWheel: View {
                     let averageDirection = scrollDirections.reduce(0, +) / Double(scrollDirections.count)
                     
                     if averageDirection > 0 {
-                        views[GlobalState.shared.activeView].wheelDown()
+                        views[GlobalState.shared.activeView]?.wheelDown()
                         scrollDirections.removeAll()
                     } else {
-                        views[GlobalState.shared.activeView].wheelUp()
+                        views[GlobalState.shared.activeView]?.wheelUp()
                         scrollDirections.removeAll()
                         
                     }
@@ -59,7 +59,7 @@ struct ClickWheel: View {
                 .frame(width: 200, height: 200)
                 .overlay(VStack {
                     Button(action: {
-                        views[GlobalState.shared.activeView].menuClick()
+                        views[GlobalState.shared.activeView]?.menuClick()
                     }) {
                         VStack {
                             Image("menu")
@@ -78,7 +78,7 @@ struct ClickWheel: View {
                         Spacer()
                         
                         Button(action: {
-                            views[GlobalState.shared.activeView].prevClick()
+                            views[GlobalState.shared.activeView]?.prevClick()
                         }) {
                             HStack(spacing: 0) {
                                 Rectangle()
@@ -95,7 +95,7 @@ struct ClickWheel: View {
                         
                         
                         Button(action: {
-                            views[GlobalState.shared.activeView].middleClick()
+                            views[GlobalState.shared.activeView]?.middleClick()
                         }) {
                             Circle()
                                 .fill(.base)
@@ -105,7 +105,7 @@ struct ClickWheel: View {
                         
                         
                         Button(action: {
-                            views[GlobalState.shared.activeView].nextClick()
+                            views[GlobalState.shared.activeView]?.nextClick()
                         }) {
                             
                             HStack(spacing: 0) {
@@ -126,7 +126,7 @@ struct ClickWheel: View {
                     
                     
                     Button(action: {
-                        views[GlobalState.shared.activeView].playPauseClick()
+                        views[GlobalState.shared.activeView]?.playPauseClick()
                     }) {
                         VStack {
                             Spacer()

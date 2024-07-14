@@ -11,12 +11,14 @@ import AppKit
 struct ContentView: View {
     @AppStorage("fontSize") var fontSize = 13.0
     
-    private var views: [any ProtocolView] {[albumView, songView, onboardingView]}
+    @StateObject private var globalState = GlobalState.shared
     
-    @StateObject private var songView = SongViewModel()
-    @StateObject private var albumView = AlbumViewModel()
-    @StateObject private var onboardingView = OnboardingViewModel()
-            
+    private var views: [Screen: any ProtocolView] = [
+        .onboarding: OnboardingViewModel(),
+        .song: GlobalState.shared.songViewModel,
+        .albums: AlbumViewModel(),
+    ]
+    
     var body: some View {
         ZStack {
             VStack {
@@ -24,18 +26,11 @@ struct ContentView: View {
                     .fill(Color.white)
                     .frame(width: 320, height: 240)
                     .overlay(ZStack {
-                        //                        Text("\(GlobalState.shared.activeView)").foregroundStyle(.red).zIndex(100)
-                            switch GlobalState.shared.activeView {
-                            case 0:
-                                AlbumsView(viewModel: views[0] as! AlbumViewModel)
-                            case 1:
-                                SongView(viewModel: views[1] as! SongViewModel)
-                            case 2:
-                                Onboarding(viewModel: views[2] as! OnboardingViewModel)
-                            default:
-                                AlbumsView(viewModel: views[0] as! AlbumViewModel)
-                            }
-                       
+                        if let currentView = views[globalState.activeView]?.view {
+                            AnyView(currentView)
+                        } else {
+                            Text("No View Available")
+                        }
                     })
                     .border(Color.black, width: 4)
                     .shadow(radius: 10)

@@ -5,9 +5,11 @@
 //  Created by Iskren Alexandrov on 29.06.24.
 //
 
-import Foundation
+import SwiftUI
 
 protocol ProtocolView: ObservableObject {
+    var view: AnyView { get }
+
     func nextClick()
     func prevClick()
     func playPauseClick()

@@ -12,10 +12,15 @@ import SwiftUI
 import MediaPlayer
 
 class SongViewModel: ProtocolView {
+    var view: AnyView {
+        AnyView(SongView(viewModel: self))
+    }
+    
     var audioPlayer: AVAudioPlayer?
     private var timer: Timer?
     private let hapticManager = NSHapticFeedbackManager.defaultPerformer
     
+    // TODO: Make it to empty list
     @Published var songs: [Song] = [Song(title: "Example Song", pathToAudioFile: "")]
     @Published var currentSong: Int = 0
     @Published private var update: Int = 0
@@ -48,7 +53,7 @@ class SongViewModel: ProtocolView {
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = audioPlayer?.duration ?? 0.0
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = audioPlayer?.currentTime ?? 0.0
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = audioPlayer!.isPlaying ? 1.0 : 0.0
-//        nowPlayingInfo[MPMediaItemPropertyArtwork] = songs[currentSong].coverImage
+        //        nowPlayingInfo[MPMediaItemPropertyArtwork] = songs[currentSong].coverImage
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
@@ -108,7 +113,7 @@ class SongViewModel: ProtocolView {
         self.loadAudioFile(songs[currentSong].pathToAudioFile)
         self.playPauseClick()
     }
-
+    
     func prevClick() {
         currentSong = (currentSong - 1 + songs.count) % songs.count
         self.loadAudioFile(songs[currentSong].pathToAudioFile)
@@ -147,7 +152,7 @@ class SongViewModel: ProtocolView {
             }
             self.hapticManager.perform(.levelChange, performanceTime: .default)
         }
-
+        
     }
     
     func wheelDown() {
@@ -162,11 +167,11 @@ class SongViewModel: ProtocolView {
             }
             self.hapticManager.perform(.levelChange, performanceTime: .default)
         }
-
+        
     }
     
     func menuClick() {
         objectWillChange.send()
-        GlobalState.shared.activeView -= 1
+        GlobalState.shared.activeView = .albums
     }
 }

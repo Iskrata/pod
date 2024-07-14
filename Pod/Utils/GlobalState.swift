@@ -11,36 +11,36 @@ class GlobalState: ObservableObject {
     
     var selectedAlbumDir: String = ""
     
-//    @AppStorage("musicFolderPath") var musicFolderDir: String = "\(URL.userHome.path)/Music"
+    var songViewModel = SongViewModel()
+    
     @Published var musicFolderDir: String = UserDefaults.standard.string(forKey: "musicFolderPath") ?? "\(URL.userHome.path)/Music" {
-            didSet {
-                UserDefaults.standard.set(musicFolderDir, forKey: "musicFolderPath")
-            }
+        didSet {
+            UserDefaults.standard.set(musicFolderDir, forKey: "musicFolderPath")
         }
+    }
     
-    var activeView: Int = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? 0 : 2
-    var viewCount: Int = 2
-    
-    private init() { 
+    @Published var activeView: Screen = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? .albums : .onboarding
+        
+    private init() {
         if let bookmarkData = UserDefaults.standard.data(forKey: "musicFolderBookmark") {
-                   restoreBookmarkData(bookmarkData)
-               }
+            restoreBookmarkData(bookmarkData)
+        }
     }
     
     func restoreBookmarkData(_ bookmarkData: Data) {
-           do {
-               var isStale = false
-               let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
-               if !isStale {
-                   if url.startAccessingSecurityScopedResource() {
-                       musicFolderDir = url.path
-                   }
-               } else {
-                   // Handle stale bookmark data
-                   print("Bookmark data is stale.")
-               }
-           } catch {
-               print("Failed to resolve bookmark data: \(error)")
-           }
-       }
+        do {
+            var isStale = false
+            let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
+            if !isStale {
+                if url.startAccessingSecurityScopedResource() {
+                    musicFolderDir = url.path
+                }
+            } else {
+                // Handle stale bookmark data
+                print("Bookmark data is stale.")
+            }
+        } catch {
+            print("Failed to resolve bookmark data: \(error)")
+        }
+    }
 }

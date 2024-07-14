@@ -10,6 +10,10 @@ import AVFoundation
 import Combine
 
 class AlbumViewModel: ProtocolView {
+    var view: AnyView {
+        AnyView(AlbumsView(viewModel: self))
+    }
+    
     @Published var loadUrl: String = ""
     @Published var albums: [Album] = []
     @Published var scrollOffset: CGFloat = 0
@@ -19,7 +23,7 @@ class AlbumViewModel: ProtocolView {
     private var cancellables = Set<AnyCancellable>()
     
     private let hapticManager = NSHapticFeedbackManager.defaultPerformer
-        
+    
     let fileManager = FileManager.default
     var excludeFolder = ["Music", "PioneerDJ"]
     
@@ -28,11 +32,11 @@ class AlbumViewModel: ProtocolView {
         self.loadDirectories()
         
         settings.$musicFolderDir
-                    .sink { [weak self] newFolderPath in
-                        self?.loadUrl = newFolderPath
-                        self?.loadDirectories()
-                    }
-                    .store(in: &cancellables)
+            .sink { [weak self] newFolderPath in
+                self?.loadUrl = newFolderPath
+                self?.loadDirectories()
+            }
+            .store(in: &cancellables)
     }
     
     func sortAlbums() {
@@ -61,39 +65,39 @@ class AlbumViewModel: ProtocolView {
     }
     
     func loadDirectories() {
-            albums.removeAll()
+        albums.removeAll()
         
-            let url = URL(fileURLWithPath: loadUrl)
-            loadDirectories(at: url)
-            sortAlbums()
-        }
-
-        private func loadDirectories(at url: URL) {
-            do {
-                let contents = try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
-                let directories = contents.filter { $0.hasDirectoryPath }
-                let musicFiles = contents.filter { !$0.hasDirectoryPath && $0.pathExtension == "mp3" } // Adjust for other music file extensions if needed
-
-                if !musicFiles.isEmpty {
-                    let albumName = url.lastPathComponent
-                    
-                    if excludeFolder.contains(albumName) {
-                        return
-                    }
-
-                    let coverImage = getAlbumCover(from: url)
-                    let album = Album(name: albumName, coverImage: coverImage, path: url.path)
-                    albums.append(album)
+        let url = URL(fileURLWithPath: loadUrl)
+        loadDirectories(at: url)
+        sortAlbums()
+    }
+    
+    private func loadDirectories(at url: URL) {
+        do {
+            let contents = try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
+            let directories = contents.filter { $0.hasDirectoryPath }
+            let musicFiles = contents.filter { !$0.hasDirectoryPath && $0.pathExtension == "mp3" } // Adjust for other music file extensions if needed
+            
+            if !musicFiles.isEmpty {
+                let albumName = url.lastPathComponent
+                
+                if excludeFolder.contains(albumName) {
+                    return
                 }
-
-                for directory in directories {
-                    loadDirectories(at: directory)
-                }
-            } catch {
-                print("Error loading directories: \(error.localizedDescription)")
+                
+                let coverImage = getAlbumCover(from: url)
+                let album = Album(name: albumName, coverImage: coverImage, path: url.path)
+                albums.append(album)
             }
+            
+            for directory in directories {
+                loadDirectories(at: directory)
+            }
+        } catch {
+            print("Error loading directories: \(error.localizedDescription)")
         }
-        
+    }
+    
     private func getAlbumCover(from directoryURL: URL) -> Image? {
         do {
             let contents = try fileManager.contentsOfDirectory(at: directoryURL, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
@@ -128,7 +132,7 @@ class AlbumViewModel: ProtocolView {
     func middleClick() {
         objectWillChange.send()
         GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
-        GlobalState.shared.activeView += 1
+        GlobalState.shared.activeView = .song
     }
     
     func wheelUp(){

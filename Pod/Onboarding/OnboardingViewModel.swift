@@ -22,7 +22,6 @@ class OnboardingViewModel: ProtocolView {
         if (self.activeScreen < 3) {
             self.activeScreen += 1
         } else {
-            objectWillChange.send()
             GlobalState.shared.activeView = .albums
         }
     }

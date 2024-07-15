@@ -49,6 +49,7 @@ struct AlbumsView: View {
                                                 .font(.system(size: 13, weight: .heavy))
                                                 .lineLimit(2)
                                                 .multilineTextAlignment(.center)
+                                                .foregroundColor(.black)
                                         }
                                         .scaleEffect(viewModel.scale(for: innerGeometry.frame(in: .global), in: outerGeometry.frame(in: .global)))
                                         .onTapGesture {

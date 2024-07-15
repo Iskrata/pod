@@ -171,7 +171,6 @@ class SongViewModel: ProtocolView {
     }
     
     func menuClick() {
-        objectWillChange.send()
         GlobalState.shared.activeView = .albums
     }
 }

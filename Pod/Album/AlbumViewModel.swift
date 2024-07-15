@@ -130,7 +130,6 @@ class AlbumViewModel: ProtocolView {
     }
     
     func middleClick() {
-        objectWillChange.send()
         GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
         GlobalState.shared.activeView = .song
     }

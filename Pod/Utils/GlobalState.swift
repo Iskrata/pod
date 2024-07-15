@@ -9,9 +9,14 @@ import SwiftUI
 class GlobalState: ObservableObject {
     static let shared = GlobalState()
     
+    var songViewModel = SongViewModel()
     var selectedAlbumDir: String = ""
     
-    var songViewModel = SongViewModel()
+    private init() {
+        if let bookmarkData = UserDefaults.standard.data(forKey: "musicFolderBookmark") {
+            restoreBookmarkData(bookmarkData)
+        }
+    }
     
     @Published var musicFolderDir: String = UserDefaults.standard.string(forKey: "musicFolderPath") ?? "\(URL.userHome.path)/Music" {
         didSet {
@@ -20,10 +25,10 @@ class GlobalState: ObservableObject {
     }
     
     @Published var activeView: Screen = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? .albums : .onboarding
-        
-    private init() {
-        if let bookmarkData = UserDefaults.standard.data(forKey: "musicFolderBookmark") {
-            restoreBookmarkData(bookmarkData)
+    
+    @Published var appearance: String = UserDefaults.standard.string(forKey: "appearance") ?? "System" {
+        didSet {
+            UserDefaults.standard.set(appearance, forKey: "appearance")
         }
     }
     

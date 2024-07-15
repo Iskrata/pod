@@ -32,6 +32,7 @@ struct OnboardingScreen: View {
     var body: some View {
         VStack () {
             Text(screen.title).font(.system(size: 20, weight: .bold, design: .default))
+                .foregroundStyle(.black)
             Spacer()
             if(activeScreen == 0) {
                 Image("appIcon")
@@ -48,24 +49,16 @@ struct OnboardingScreen: View {
                     .frame(width: 30, height: 30)
                     .foregroundColor(.pink)
                 VStack (alignment: .leading, spacing: 2) {
-                    Text(screen.heading ?? "").bold()
+                    Text(screen.heading ?? "")
+                        .foregroundStyle(.black)
+                        .bold()
+                    
                     Text(screen.description ?? "")
+                        .foregroundStyle(.black)
                 }
                 Spacer(minLength: 10)
             }
             Spacer()
-//            Button {
-//               
-//            } label: {
-//                Text("Next")
-//                    .frame(width: 240, height: 40)
-//                    .background(Color.orange)
-//                    .foregroundStyle(.white)
-//                    .font(.system(size: 18, weight: .bold, design: .default))
-//                    .cornerRadius(3)
-//            }
-//            .buttonStyle(PlainButtonStyle())
-//            .shadow(radius: 0)
         }
     }
     

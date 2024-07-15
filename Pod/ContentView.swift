@@ -8,6 +8,28 @@
 import SwiftUI
 import AppKit
 
+struct DiagonalBackgroundView: View {
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                Color.base
+                    .edgesIgnoringSafeArea(.all)
+                
+                Path { path in
+                    let width = geometry.size.width
+                    let height = geometry.size.height
+                    
+                    path.move(to: CGPoint(x: width, y: height - 30))
+                    path.addLine(to: CGPoint(x: 30, y: 0))
+                    path.addLine(to: CGPoint(x: width, y: 0))
+                    path.addLine(to: CGPoint(x: width, y: height - 30))
+                }
+                .fill(.subBase)
+            }
+        }.clipped()
+    }
+}
+
 struct ContentView: View {
     @AppStorage("fontSize") var fontSize = 13.0
     
@@ -41,7 +63,7 @@ struct ContentView: View {
                 ClickWheel(views: views)
             }
             .padding()
-        }.background(.base)
+        }.background(DiagonalBackgroundView())
     }
     
     

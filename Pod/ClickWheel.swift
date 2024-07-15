@@ -65,6 +65,7 @@ struct ClickWheel: View {
                             Image("menu")
                                 .resizable()
                                 .scaledToFit()
+                                .foregroundColor(.wheelButton)
                             
                             Spacer()
                         }
@@ -85,7 +86,9 @@ struct ClickWheel: View {
                                     .foregroundColor(.wheelButton)
                                     .frame(width: 3, height: 15)
                                 Image("left")
+                                    .foregroundColor(.wheelButton)
                                 Image("left")
+                                    .foregroundColor(.wheelButton)
                                 Spacer()
                             }
                             .contentShape(Rectangle())
@@ -111,7 +114,9 @@ struct ClickWheel: View {
                             HStack(spacing: 0) {
                                 Spacer()
                                 Image("right")
+                                    .foregroundColor(.wheelButton)
                                 Image("right")
+                                    .foregroundColor(.wheelButton)
                                 Rectangle()
                                     .foregroundColor(.wheelButton)
                                     .frame(width: 3, height: 15)
@@ -132,6 +137,7 @@ struct ClickWheel: View {
                             Spacer()
                             HStack(spacing: 5) {
                                 Image("right")
+                                    .foregroundColor(.wheelButton)
                                 
                                 Rectangle()
                                     .foregroundColor(.wheelButton)
@@ -153,4 +159,8 @@ struct ClickWheel: View {
             self.handleDragChange(value: value)
         })
     }
+}
+
+#Preview {
+    ClickWheel(views: [:])
 }

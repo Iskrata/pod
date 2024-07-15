@@ -11,12 +11,25 @@ import Cocoa
 @main
 struct PodApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject var globalState = GlobalState.shared
+    
+    func getColorScheme() -> ColorScheme? {
+        switch globalState.appearance {
+            case "Dark":
+                    .dark
+            case "Light":
+                    .light
+            default:
+                nil
+        }
+    }
+    
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .fixedSize()
-                .preferredColorScheme(.light)
+                .preferredColorScheme(getColorScheme())
         }
         .windowResizability(.contentSize)
         
@@ -45,11 +58,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func checkForUpdatesIfNeeded() {
-        #if DEBUG
+#if DEBUG
         print("App is running in Debug mode")
-        #else
+#else
         UpdateChecker.shared.checkForUpdates()
-        #endif
+#endif
     }
 }
 

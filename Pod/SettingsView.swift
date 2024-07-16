@@ -82,6 +82,7 @@ struct MusicFolderSelection: View {
             }) {
                 Text("\(globalState.musicFolderDir.isEmpty ? "Not Selected" : globalState.musicFolderDir)")
                     .padding(2)
+                    .help("\(globalState.musicFolderDir.isEmpty ? "Not Selected" : globalState.musicFolderDir)")
             }
             Spacer(minLength: 60)
         }.fileImporter(isPresented: $showFolderPicker, allowedContentTypes: [.folder], allowsMultipleSelection: false) { result in
@@ -107,6 +108,8 @@ struct MusicFolderSelection: View {
         do {
             let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
             UserDefaults.standard.set(bookmarkData, forKey: "musicFolderBookmark")
+            
+            globalState.restoreBookmarkData(bookmarkData)
         } catch {
             print("Failed to save bookmark data: \(error)")
         }

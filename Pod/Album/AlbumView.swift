@@ -17,16 +17,19 @@ struct AlbumsView: View {
                 VStack {
                     Spacer()
                     if viewModel.albums.count == 0 {
-                        VStack (alignment: .center, spacing: 10) {
-                            Image(systemName: "magnifyingglass")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 30, height: 30)
-                            Text("No music found.").bold()
-                            Text("Move some mp3's into the Music folder on your Mac").font(.system(size: 10, design: .default))
-                            
-                        }.frame(width: 150)
-                        
+                        HStack {
+                            Spacer()
+                            VStack (alignment: .center, spacing: 10) {
+                                Image(systemName: "magnifyingglass")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 30, height: 30)
+                                Text("No music found.").bold()
+                                Text("Move some mp3's into the Music folder on your Mac").font(.system(size: 10, design: .default))
+                                
+                            }.frame(width: 150)
+                            Spacer()
+                        }
                     }
                     else {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -34,22 +37,24 @@ struct AlbumsView: View {
                                 ForEach(viewModel.albums.indices, id: \.self) { index in
                                     GeometryReader { innerGeometry in
                                         VStack(spacing: 10) {
-                                            if let coverImage = viewModel.albums[index].coverImage {
-                                                coverImage
-                                                    .resizable()
-                                                    .frame(width: 150, height: 150)
-                                                    .cornerRadius(2)
-                                            } else {
-                                                Rectangle()
-                                                    .fill(Color.gray)
-                                                    .frame(width: 150, height: 150)
-                                                    .cornerRadius(2)
+                                            if index < viewModel.albums.count {
+                                                if let coverImage = viewModel.albums[index].coverImage {
+                                                    coverImage
+                                                        .resizable()
+                                                        .frame(width: 150, height: 150)
+                                                        .cornerRadius(2)
+                                                } else {
+                                                    Rectangle()
+                                                        .fill(Color.gray)
+                                                        .frame(width: 150, height: 150)
+                                                        .cornerRadius(2)
+                                                }
+                                                Text(viewModel.albums[index].name)
+                                                    .font(.system(size: 13, weight: .heavy))
+                                                    .lineLimit(2)
+                                                    .multilineTextAlignment(.center)
+                                                    .foregroundColor(.black)
                                             }
-                                            Text(viewModel.albums[index].name)
-                                                .font(.system(size: 13, weight: .heavy))
-                                                .lineLimit(2)
-                                                .multilineTextAlignment(.center)
-                                                .foregroundColor(.black)
                                         }
                                         .scaleEffect(viewModel.scale(for: innerGeometry.frame(in: .global), in: outerGeometry.frame(in: .global)))
                                         .onTapGesture {

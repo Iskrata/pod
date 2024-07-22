@@ -58,6 +58,8 @@ class UpdateChecker {
         if alert.runModal() == .alertFirstButtonReturn {
             if let url = URL(string: downloadURL) {
                 NSWorkspace.shared.open(url)
+                
+                NSApplication.shared.terminate(nil)
             }
         }
     }

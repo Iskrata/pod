@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Cocoa
+import TelemetryDeck
 
 @main
 struct PodApp: App {
@@ -15,15 +16,22 @@ struct PodApp: App {
     
     func getColorScheme() -> ColorScheme? {
         switch globalState.appearance {
-            case "Dark":
-                    .dark
-            case "Light":
-                    .light
-            default:
-                nil
+        case "Dark":
+                .dark
+        case "Light":
+                .light
+        default:
+            nil
         }
     }
     
+    
+    init() {
+        let config = TelemetryDeck.Config(appID: "9B3B75EC-D70D-4B62-902C-2967F932F84B")
+        TelemetryDeck.initialize(config: config)
+        
+        TelemetryDeck.signal("App.launched")
+    }
     
     var body: some Scene {
         WindowGroup {

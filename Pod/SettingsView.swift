@@ -14,6 +14,8 @@ struct SettingsView: View {
                 .tabItem {
                     Label("General", systemImage: "gearshape.fill")
                 }
+            ContactUs()
+                .tabItem { Label("Help", systemImage: "questionmark.circle") }
         }
         .frame(width: 450, height: 250)
     }
@@ -25,6 +27,37 @@ extension UserDefaults {
         let dictionary = self.dictionaryRepresentation()
         dictionary.keys.forEach { key in
             self.removeObject(forKey: key)
+        }
+    }
+}
+
+struct ContactUs: View {
+    var body: some View {
+        VStack {
+            Spacer()
+            HStack(spacing: 10) {
+                Button(action: {
+                    let email = "mailto:iskren.alexandrov@gmail.com?subject=Discussion%20about%20Pod"
+                    if let url = URL(string: email) {
+                        NSWorkspace.shared.open(url)
+                    }
+                }) {
+                    Label("Email", systemImage: "envelope")
+                        .padding()
+                }
+                Button(action: {
+                    let website = "https://x.com/iskrataa"
+                    if let url = URL(string: website) {
+                        NSWorkspace.shared.open(url)
+                    }
+                }) {
+                    Label("X", systemImage: "x.circle")
+                        .padding()
+                }
+            }
+            
+            
+            Spacer()
         }
     }
 }

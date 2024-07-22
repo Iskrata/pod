@@ -10,6 +10,7 @@ import Foundation
 import AVFoundation
 import SwiftUI
 import MediaPlayer
+import TelemetryDeck
 
 class SongViewModel: ProtocolView {
     var view: AnyView {
@@ -43,6 +44,8 @@ class SongViewModel: ProtocolView {
             duration = audioPlayer?.duration ?? 0
             currentTime = 0
             audioPlayer?.volume = 0.6
+            
+            TelemetryDeck.signal("Song.play", parameters: ["songName": songs[currentSong].title, "artist": songs[currentSong].artist ?? ""])
         } catch {
             print("Failed to load audio file: \(error.localizedDescription)")
         }
@@ -73,7 +76,6 @@ class SongViewModel: ProtocolView {
         
         commandCenter.togglePlayPauseCommand.isEnabled = true
         commandCenter.togglePlayPauseCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-            print("togglePlayPauseCommand")
             self?.playPauseClick()
             return .success
         }
@@ -92,7 +94,6 @@ class SongViewModel: ProtocolView {
         
         commandCenter.playCommand.isEnabled = true
         commandCenter.playCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
-            print("playCommand")
             self?.playPauseClick()
             return .success
         }

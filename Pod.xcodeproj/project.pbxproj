@@ -12,6 +12,7 @@
 		B129C74F2C340E7000E185C8 /* ViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129C74E2C340E7000E185C8 /* ViewState.swift */; };
 		B149B95E2C28124000B13AFA /* LoadAudioFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */; };
 		B149B9602C282BEB00B13AFA /* SongView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95F2C282BEB00B13AFA /* SongView.swift */; };
+		B150D0432C4ED1E900A03CE3 /* TelemetryDeck in Frameworks */ = {isa = PBXBuildFile; productRef = B150D0422C4ED1E900A03CE3 /* TelemetryDeck */; };
 		B15790A42C2C7A2100179E62 /* SongViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15790A32C2C7A2100179E62 /* SongViewModel.swift */; };
 		B19420FE2C3BDC7B00C918B5 /* Onboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19420FD2C3BDC7B00C918B5 /* Onboarding.swift */; };
 		B19421002C3BE33000C918B5 /* OnboardingScreenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19420FF2C3BE33000C918B5 /* OnboardingScreenModel.swift */; };
@@ -82,6 +83,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B150D0432C4ED1E900A03CE3 /* TelemetryDeck in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -214,6 +216,9 @@
 			dependencies = (
 			);
 			name = Pod;
+			packageProductDependencies = (
+				B150D0422C4ED1E900A03CE3 /* TelemetryDeck */,
+			);
 			productName = Pod;
 			productReference = B1BBDD262C26C37F00C062D8 /* Pod.app */;
 			productType = "com.apple.product-type.application";
@@ -514,6 +519,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Pod/Preview Content\"";
 				DEVELOPMENT_TEAM = B7949NL6NG;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Pod;
@@ -523,7 +529,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "Iskren-Alexandrov.Pod";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -543,6 +549,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Pod/Preview Content\"";
 				DEVELOPMENT_TEAM = B7949NL6NG;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Pod;
@@ -552,7 +559,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "Iskren-Alexandrov.Pod";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -679,6 +686,14 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B150D0422C4ED1E900A03CE3 /* TelemetryDeck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B150D0412C4ED14D00A03CE3 /* XCRemoteSwiftPackageReference "SwiftSDK" */;
+			productName = TelemetryDeck;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B1BBDD1E2C26C37F00C062D8 /* Project object */;
 }

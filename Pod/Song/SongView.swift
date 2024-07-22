@@ -19,7 +19,7 @@ struct SongView: View {
             HStack(spacing: 20) {
                 VStack {
                     if let coverImage = viewModel.songs[viewModel.currentSong].coverImage {
-                        coverImage
+                        Image(nsImage: coverImage)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .modifier(PerspectiveTransformEffect())

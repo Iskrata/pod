@@ -13,12 +13,12 @@ func loadAudioFiles(from directory: String) -> [Song] {
     let fileManager = FileManager.default
     let url = URL(fileURLWithPath: directory)
     
-    func getAlbumCover(from fileURL: URL) -> Image? {
+    func getAlbumCover(from fileURL: URL) -> NSImage? {
         do {
             let asset = AVAsset(url: fileURL)
             for metadataItem in asset.commonMetadata {
                 if metadataItem.commonKey?.rawValue == "artwork", let data = metadataItem.value as? Data, let nsImage = NSImage(data: data) {
-                    return Image(nsImage: nsImage)
+                    return nsImage
                 }
             }
         } catch {

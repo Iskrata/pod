@@ -29,6 +29,11 @@ class SongViewModel: ProtocolView {
     @Published var currentTime: TimeInterval = 0.0
     var duration: TimeInterval = 0.0
     
+    init()
+    {
+        self.setupRemoteCommandCenter()
+    }
+    
     func loadAudioFile(_ path: String) {
         do {
             let url = URL(fileURLWithPath: path)
@@ -38,8 +43,6 @@ class SongViewModel: ProtocolView {
             duration = audioPlayer?.duration ?? 0
             currentTime = 0
             audioPlayer?.volume = 0.6
-            
-            self.updateNowPlayingInfo()
         } catch {
             print("Failed to load audio file: \(error.localizedDescription)")
         }
@@ -52,10 +55,49 @@ class SongViewModel: ProtocolView {
         nowPlayingInfo[MPMediaItemPropertyArtist] = songs[currentSong].artist
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = audioPlayer?.duration ?? 0.0
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = audioPlayer?.currentTime ?? 0.0
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = audioPlayer!.isPlaying ? 1.0 : 0.0
-        //        nowPlayingInfo[MPMediaItemPropertyArtwork] = songs[currentSong].coverImage
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = (audioPlayer?.isPlaying ?? false) ? 1.0 : 0.0
+        
+        let songImage: NSImage? = songs[currentSong].coverImage
+        if (songImage != nil) {
+            let albumArt: MPMediaItemArtwork = MPMediaItemArtwork(boundsSize: songImage!.size) { size in
+                songImage!
+            }
+            nowPlayingInfo[MPMediaItemPropertyArtwork] = albumArt
+        }
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    func setupRemoteCommandCenter() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        
+        commandCenter.togglePlayPauseCommand.isEnabled = true
+        commandCenter.togglePlayPauseCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
+            print("togglePlayPauseCommand")
+            self?.playPauseClick()
+            return .success
+        }
+        
+        commandCenter.nextTrackCommand.isEnabled = true
+        commandCenter.nextTrackCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
+            self?.nextClick()
+            return .success
+        }
+        
+        commandCenter.previousTrackCommand.isEnabled = true
+        commandCenter.previousTrackCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
+            self?.prevClick()
+            return .success
+        }
+        
+        commandCenter.playCommand.isEnabled = true
+        commandCenter.playCommand.addTarget { [weak self] (event) -> MPRemoteCommandHandlerStatus in
+            print("playCommand")
+            self?.playPauseClick()
+            return .success
+        }
+        
+        updateNowPlayingInfo()
     }
     
     private func startTimer() {
@@ -127,12 +169,15 @@ class SongViewModel: ProtocolView {
             player.pause()
             isPlaying = false
             stopTimer()
+            MPNowPlayingInfoCenter.default().playbackState = .paused
         } else {
             player.play()
             isPlaying = true
-            
             startTimer()
+            MPNowPlayingInfoCenter.default().playbackState = .playing
         }
+        
+        updateNowPlayingInfo()
     }
     
     

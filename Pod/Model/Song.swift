@@ -15,9 +15,9 @@ struct Song: Identifiable {
     var artist: String?
     var album: String?
     var pathToAudioFile: String
-    var coverImage: Image?
+    var coverImage: NSImage?
     
-    init(title: String, artist: String? = nil, album: String? = nil, pathToAudioFile: String, coverImage: Image? = nil) {
+    init(title: String, artist: String? = nil, album: String? = nil, pathToAudioFile: String, coverImage: NSImage? = nil) {
         self.title = title
         self.artist = artist
         self.album = album

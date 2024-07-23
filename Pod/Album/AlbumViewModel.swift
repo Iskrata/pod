@@ -98,14 +98,14 @@ class AlbumViewModel: ProtocolView {
         }
     }
     
-    private func getAlbumCover(from directoryURL: URL) -> Image? {
+    private func getAlbumCover(from directoryURL: URL) -> NSImage? {
         do {
             let contents = try fileManager.contentsOfDirectory(at: directoryURL, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
             for fileURL in contents where fileURL.pathExtension == "mp3" {
                 let asset = AVAsset(url: fileURL)
                 for metadataItem in asset.commonMetadata {
                     if metadataItem.commonKey?.rawValue == "artwork", let data = metadataItem.value as? Data, let nsImage = NSImage(data: data) {
-                        return Image(nsImage: nsImage)
+                        return nsImage
                     }
                 }
             }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B10B95D62C4F8F020013450C /* ItunesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10B95D52C4F8F020013450C /* ItunesView.swift */; };
 		B125689D2C3E628F00410782 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B125689C2C3E628F00410782 /* SettingsView.swift */; };
 		B129C74D2C33E9E400E185C8 /* HomeDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */; };
 		B129C74F2C340E7000E185C8 /* ViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129C74E2C340E7000E185C8 /* ViewState.swift */; };
@@ -32,24 +33,8 @@
 		B1BBDD562C26C4B700C062D8 /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD552C26C4B700C062D8 /* Song.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		B1BBDD382C26C38000C062D8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B1BBDD1E2C26C37F00C062D8 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = B1BBDD252C26C37F00C062D8;
-			remoteInfo = Pod;
-		};
-		B1BBDD422C26C38000C062D8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B1BBDD1E2C26C37F00C062D8 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = B1BBDD252C26C37F00C062D8;
-			remoteInfo = Pod;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
+		B10B95D52C4F8F020013450C /* ItunesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItunesView.swift; sourceTree = "<group>"; };
 		B125689C2C3E628F00410782 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDirectory.swift; sourceTree = "<group>"; };
 		B129C74E2C340E7000E185C8 /* ViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewState.swift; sourceTree = "<group>"; };
@@ -73,8 +58,6 @@
 		B1BBDD2D2C26C38000C062D8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B1BBDD302C26C38000C062D8 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B1BBDD322C26C38000C062D8 /* Pod.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pod.entitlements; sourceTree = "<group>"; };
-		B1BBDD372C26C38000C062D8 /* PodTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PodTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		B1BBDD412C26C38000C062D8 /* PodUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PodUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1BBDD552C26C4B700C062D8 /* Song.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,20 +67,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B150D0432C4ED1E900A03CE3 /* TelemetryDeck in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B1BBDD342C26C38000C062D8 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B1BBDD3E2C26C38000C062D8 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -155,8 +124,6 @@
 			isa = PBXGroup;
 			children = (
 				B1BBDD262C26C37F00C062D8 /* Pod.app */,
-				B1BBDD372C26C38000C062D8 /* PodTests.xctest */,
-				B1BBDD412C26C38000C062D8 /* PodUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -176,6 +143,7 @@
 				B1BBDD2D2C26C38000C062D8 /* Assets.xcassets */,
 				B1BBDD322C26C38000C062D8 /* Pod.entitlements */,
 				B1BBDD2F2C26C38000C062D8 /* Preview Content */,
+				B10B95D52C4F8F020013450C /* ItunesView.swift */,
 			);
 			path = Pod;
 			sourceTree = "<group>";
@@ -223,42 +191,6 @@
 			productReference = B1BBDD262C26C37F00C062D8 /* Pod.app */;
 			productType = "com.apple.product-type.application";
 		};
-		B1BBDD362C26C38000C062D8 /* PodTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B1BBDD4E2C26C38000C062D8 /* Build configuration list for PBXNativeTarget "PodTests" */;
-			buildPhases = (
-				B1BBDD332C26C38000C062D8 /* Sources */,
-				B1BBDD342C26C38000C062D8 /* Frameworks */,
-				B1BBDD352C26C38000C062D8 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				B1BBDD392C26C38000C062D8 /* PBXTargetDependency */,
-			);
-			name = PodTests;
-			productName = PodTests;
-			productReference = B1BBDD372C26C38000C062D8 /* PodTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		B1BBDD402C26C38000C062D8 /* PodUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B1BBDD512C26C38000C062D8 /* Build configuration list for PBXNativeTarget "PodUITests" */;
-			buildPhases = (
-				B1BBDD3D2C26C38000C062D8 /* Sources */,
-				B1BBDD3E2C26C38000C062D8 /* Frameworks */,
-				B1BBDD3F2C26C38000C062D8 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				B1BBDD432C26C38000C062D8 /* PBXTargetDependency */,
-			);
-			name = PodUITests;
-			productName = PodUITests;
-			productReference = B1BBDD412C26C38000C062D8 /* PodUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -271,14 +203,6 @@
 				TargetAttributes = {
 					B1BBDD252C26C37F00C062D8 = {
 						CreatedOnToolsVersion = 15.3;
-					};
-					B1BBDD362C26C38000C062D8 = {
-						CreatedOnToolsVersion = 15.3;
-						TestTargetID = B1BBDD252C26C37F00C062D8;
-					};
-					B1BBDD402C26C38000C062D8 = {
-						CreatedOnToolsVersion = 15.3;
-						TestTargetID = B1BBDD252C26C37F00C062D8;
 					};
 				};
 			};
@@ -299,8 +223,6 @@
 			projectRoot = "";
 			targets = (
 				B1BBDD252C26C37F00C062D8 /* Pod */,
-				B1BBDD362C26C38000C062D8 /* PodTests */,
-				B1BBDD402C26C38000C062D8 /* PodUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -312,20 +234,6 @@
 			files = (
 				B1BBDD312C26C38000C062D8 /* Preview Assets.xcassets in Resources */,
 				B1BBDD2E2C26C38000C062D8 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B1BBDD352C26C38000C062D8 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B1BBDD3F2C26C38000C062D8 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,6 +258,7 @@
 				B19F79602C2FFD3900411F62 /* AlbumView.swift in Sources */,
 				B19F796A2C3025F100411F62 /* GlobalState.swift in Sources */,
 				B1BBDD2C2C26C37F00C062D8 /* ContentView.swift in Sources */,
+				B10B95D62C4F8F020013450C /* ItunesView.swift in Sources */,
 				B129C74F2C340E7000E185C8 /* ViewState.swift in Sources */,
 				B19420FE2C3BDC7B00C918B5 /* Onboarding.swift in Sources */,
 				B1BBDD2A2C26C37F00C062D8 /* PodApp.swift in Sources */,
@@ -359,34 +268,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B1BBDD332C26C38000C062D8 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B1BBDD3D2C26C38000C062D8 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		B1BBDD392C26C38000C062D8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = B1BBDD252C26C37F00C062D8 /* Pod */;
-			targetProxy = B1BBDD382C26C38000C062D8 /* PBXContainerItemProxy */;
-		};
-		B1BBDD432C26C38000C062D8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = B1BBDD252C26C37F00C062D8 /* Pod */;
-			targetProxy = B1BBDD422C26C38000C062D8 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B1BBDD492C26C38000C062D8 /* Debug */ = {
@@ -567,74 +449,6 @@
 			};
 			name = Release;
 		};
-		B1BBDD4F2C26C38000C062D8 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.4;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Iskren-Alexandrov.PodTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pod.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pod";
-			};
-			name = Debug;
-		};
-		B1BBDD502C26C38000C062D8 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.4;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Iskren-Alexandrov.PodTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pod.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pod";
-			};
-			name = Release;
-		};
-		B1BBDD522C26C38000C062D8 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Iskren-Alexandrov.PodUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Pod;
-			};
-			name = Debug;
-		};
-		B1BBDD532C26C38000C062D8 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Iskren-Alexandrov.PodUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Pod;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -652,24 +466,6 @@
 			buildConfigurations = (
 				B1BBDD4C2C26C38000C062D8 /* Debug */,
 				B1BBDD4D2C26C38000C062D8 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B1BBDD4E2C26C38000C062D8 /* Build configuration list for PBXNativeTarget "PodTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B1BBDD4F2C26C38000C062D8 /* Debug */,
-				B1BBDD502C26C38000C062D8 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B1BBDD512C26C38000C062D8 /* Build configuration list for PBXNativeTarget "PodUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B1BBDD522C26C38000C062D8 /* Debug */,
-				B1BBDD532C26C38000C062D8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

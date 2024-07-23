@@ -39,7 +39,7 @@ struct AlbumsView: View {
                                         VStack(spacing: 10) {
                                             if index < viewModel.albums.count {
                                                 if let coverImage = viewModel.albums[index].coverImage {
-                                                    coverImage
+                                                    Image(nsImage:coverImage)
                                                         .resizable()
                                                         .frame(width: 150, height: 150)
                                                         .cornerRadius(2)

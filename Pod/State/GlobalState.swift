@@ -18,7 +18,11 @@ class GlobalState: ObservableObject {
         }
     }
     
-    @Published var includeItunesFolder: Bool = UserDefaults.standard.object(forKey: "includeItunesFolder") as? Bool ?? true
+    @Published var includeItunesFolder: Bool = UserDefaults.standard.object(forKey: "includeItunesFolder") as? Bool ?? true {
+        didSet {
+            UserDefaults.standard.set(includeItunesFolder, forKey: "includeItunesFolder")
+        }
+    }
     
     @Published var musicFolderDir: String = UserDefaults.standard.string(forKey: "musicFolderPath") ?? "\(URL.userHome.path)/Music" {
         didSet {

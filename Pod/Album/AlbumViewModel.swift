@@ -63,7 +63,12 @@ class AlbumViewModel: ProtocolView {
         albums.removeAll()
         
         let url = URL(fileURLWithPath: loadUrl)
+        
         loadDirectories(at: url)
+        if settings.includeItunesFolder {
+            loadDirectories(at: URL(fileURLWithPath: "\(URL.userHome.path)/Music/Music"))
+        }
+        
         sortAlbums()
     }
     

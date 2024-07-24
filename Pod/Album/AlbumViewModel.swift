@@ -59,11 +59,6 @@ class AlbumViewModel: ProtocolView {
         }
     }
     
-    func scale(for innerFrame: CGRect, in outerFrame: CGRect) -> CGFloat {
-        let scale = max(0.8, min(1, 1 - abs(innerFrame.midX - outerFrame.midX) / outerFrame.width))
-        return scale
-    }
-    
     func loadDirectories() {
         albums.removeAll()
         

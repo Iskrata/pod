@@ -10,6 +10,11 @@ import AVFoundation
 
 struct AlbumsView: View {
     @ObservedObject var viewModel: AlbumViewModel
+    
+    func scale(for innerFrame: CGRect, in outerFrame: CGRect) -> CGFloat {
+        let scale = max(0.8, min(1, 1 - abs(innerFrame.midX - outerFrame.midX) / outerFrame.width))
+        return scale
+    }
 
     var body: some View {
         VStack {
@@ -56,7 +61,7 @@ struct AlbumsView: View {
                                                     .foregroundColor(.black)
                                             }
                                         }
-                                        .scaleEffect(viewModel.scale(for: innerGeometry.frame(in: .global), in: outerGeometry.frame(in: .global)))
+                                        .scaleEffect(self.scale(for: innerGeometry.frame(in: .global), in: outerGeometry.frame(in: .global)))
                                         .onTapGesture {
                                             withAnimation {
                                                 viewModel.activeIndex = index

@@ -67,7 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private func checkForUpdatesIfNeeded() {
 #if DEBUG
-        print("App is running in Debug mode")
+//        print("App is running in Debug mode")
 #else
         UpdateChecker.shared.checkForUpdates()
 #endif

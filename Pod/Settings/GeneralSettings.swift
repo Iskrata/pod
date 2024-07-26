@@ -10,6 +10,13 @@ import SwiftUI
 struct GeneralSettings: View {
     @StateObject private var globalState = GlobalState.shared
     
+    func getAppVersion() -> String {
+            if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+                return appVersion
+            }
+            return "Unknown"
+        }
+    
     var body: some View {
         Form {
             Section("Music folder") {
@@ -21,6 +28,7 @@ struct GeneralSettings: View {
             .toggleStyle(.checkbox)
             Spacer(minLength: 30)
             AppearanceSection(selection: $globalState.appearance)
+            Spacer()
             #if DEBUG
             Button(action: {
                 UserDefaults.standard.reset()
@@ -28,34 +36,11 @@ struct GeneralSettings: View {
                 Label("Emit UserDefaults Data", systemImage: "circle")
             })
             #endif
+            Text("Version: \(getAppVersion())")
         }
         .fixedSize()
         .padding()
     }
-    
-//    var body: some View {
-//        HStack {
-//            VStack {
-//                Text("Music Folder:")
-//                Spacer()
-//            }
-//            VStack {
-//                MusicFolderSelection()
-//                IncludeItunes(include: $globalState.includeItunesFolder)
-//                AppearanceSection(selection: $globalState.appearance)
-//                Spacer()
-//#if DEBUG
-//                Button(action: {
-//                    UserDefaults.standard.reset()
-//                }, label: {
-//                    Label("Emit UserDefaults Data", systemImage: "circle")
-//                })
-//#endif
-//            }
-//            
-//            
-//        }
-//    }
 }
 
 struct AppearanceSection: View {

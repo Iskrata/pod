@@ -8,18 +8,27 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @State private var selectedTab = "General"
+    
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             GeneralSettings()
                 .tabItem {
                     Label("General", systemImage: "gearshape.fill")
                 }
+                .tag("General")
+            
             RadioSettings()
                 .tabItem {
                     Label("Radio", systemImage: "radio")
                 }
+                .tag("Radio")
+            
             ContactUs()
-                .tabItem { Label("Help", systemImage: "questionmark.circle") }
+                .tabItem { 
+                    Label("Help", systemImage: "questionmark.circle")
+                }
+                .tag("Help")
         }
         .frame(width: 450, height: 250)
     }

@@ -22,11 +22,13 @@ class RadioSettingsViewModel: ObservableObject {
     @Published var selectedStation: RadioStation?
     @Published var isSearching = false
     @Published var errorMessage: String?
+    @Published var suggestedStations: [RadioStation] = []
     
     private let baseURL = "https://de1.api.radio-browser.info/json/stations/search"
     
     init() {
         loadFavorites()
+        loadSuggestedStations()
     }
     
     func searchStations() {
@@ -97,6 +99,19 @@ class RadioSettingsViewModel: ObservableObject {
             favoriteStations = decoded
         }
     }
+    
+    func loadSuggestedStations() {
+        let url = URL(string: "https://de1.api.radio-browser.info/json/stations/topclick/10")!
+        
+        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            DispatchQueue.main.async {
+                if let data = data,
+                   let stations = try? JSONDecoder().decode([RadioStation].self, from: data) {
+                    self?.suggestedStations = stations
+                }
+            }
+        }.resume()
+    }
 }
 
 struct RadioSettings: View {
@@ -104,33 +119,24 @@ struct RadioSettings: View {
     @State private var selectedSidebarItem: String? = "search"
     
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: .constant(.all)) {
             // Sidebar
             List(selection: $selectedSidebarItem) {
                 NavigationLink(value: "search") {
                     Label("Search", systemImage: "magnifyingglass")
                 }
+                
                 NavigationLink(value: "favorites") {
                     Label("Favorites", systemImage: "heart.fill")
                 }
             }
             .listStyle(SidebarListStyle())
-        } content: {
-            // Content View
-            Group {
-                if selectedSidebarItem == "search" {
-                    SearchContentView(viewModel: viewModel)
-                } else {
-                    FavoritesContentView(viewModel: viewModel)
-                }
-            }
+            .frame(minWidth: 100, maxWidth: 200)
         } detail: {
-            // Detail View
-            if let station = viewModel.selectedStation {
-                StationDetailView(station: station, viewModel: viewModel)
+            if selectedSidebarItem == "search" {
+                SearchContentView(viewModel: viewModel)
             } else {
-                Text("Select a station")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                FavoritesContentView(viewModel: viewModel)
             }
         }
         .navigationTitle("Radio Stations")
@@ -139,14 +145,6 @@ struct RadioSettings: View {
 
 struct SearchContentView: View {
     @ObservedObject var viewModel: RadioSettingsViewModel
-    
-    var groupedStations: [String: [RadioStation]] {
-        Dictionary(grouping: viewModel.searchResults) { $0.country }
-            .sorted(by: { $0.key < $1.key })
-            .reduce(into: [:]) { result, element in
-                result[element.key] = element.value.sorted(by: { $0.name < $1.name })
-            }
-    }
     
     var body: some View {
         VStack {
@@ -165,7 +163,7 @@ struct SearchContentView: View {
             .cornerRadius(6)
             .padding()
             
-            // Results
+            // Results or Suggestions
             if viewModel.isSearching {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -173,14 +171,39 @@ struct SearchContentView: View {
                 Text(error)
                     .foregroundColor(.red)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if !viewModel.searchText.isEmpty {
+                StationsList(stations: viewModel.searchResults, viewModel: viewModel)
             } else {
-                List(selection: $viewModel.selectedStation) {
-                    ForEach(Array(groupedStations.keys.sorted()), id: \.self) { country in
-                        Section(header: Text(country)) {
-                            ForEach(groupedStations[country] ?? [], id: \.self) { station in
-                                RadioStationRow(station: station, viewModel: viewModel)
-                            }
-                        }
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Popular Stations")
+                        .font(.headline)
+                        .padding(.horizontal)
+                    
+                    StationsList(stations: viewModel.suggestedStations, viewModel: viewModel)
+                }
+            }
+        }
+    }
+}
+
+struct StationsList: View {
+    let stations: [RadioStation]
+    @ObservedObject var viewModel: RadioSettingsViewModel
+    
+    var groupedStations: [String: [RadioStation]] {
+        Dictionary(grouping: stations) { $0.country }
+            .sorted(by: { $0.key < $1.key })
+            .reduce(into: [:]) { result, element in
+                result[element.key] = element.value.sorted(by: { $0.name < $1.name })
+            }
+    }
+    
+    var body: some View {
+        List(selection: $viewModel.selectedStation) {
+            ForEach(Array(groupedStations.keys.sorted()), id: \.self) { country in
+                Section(header: Text(country)) {
+                    ForEach(groupedStations[country] ?? [], id: \.self) { station in
+                        RadioStationRow(station: station, viewModel: viewModel)
                     }
                 }
             }
@@ -249,41 +272,3 @@ struct RadioStationRow: View {
     }
 }
 
-struct StationDetailView: View {
-    let station: RadioStation
-    @ObservedObject var viewModel: RadioSettingsViewModel
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text(station.name)
-                    .font(.title)
-                Spacer()
-                Button(action: {
-                    viewModel.toggleFavorite(station)
-                }) {
-                    Image(systemName: viewModel.isFavorite(station) ? "heart.fill" : "heart")
-                        .foregroundColor(viewModel.isFavorite(station) ? .red : .secondary)
-                }
-                .buttonStyle(.plain)
-            }
-            
-            Divider()
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Stream URL:")
-                    .font(.headline)
-                Text(station.url)
-                    .textSelection(.enabled)
-                
-                Text("Country:")
-                    .font(.headline)
-                Text(station.country)
-            }
-            
-            Spacer()
-        }
-        .padding()
-        .frame(minWidth: 300)
-    }
-}

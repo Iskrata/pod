@@ -12,11 +12,14 @@ struct SettingsView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            GeneralSettings()
-                .tabItem {
-                    Label("General", systemImage: "gearshape.fill")
-                }
-                .tag("General")
+            ScrollView {
+                GeneralSettings()
+                    .padding()
+            }
+            .tabItem {
+                Label("General", systemImage: "gearshape.fill")
+            }
+            .tag("General")
             
             RadioSettings()
                 .tabItem {
@@ -24,13 +27,16 @@ struct SettingsView: View {
                 }
                 .tag("Radio")
             
-            ContactUs()
-                .tabItem { 
-                    Label("Help", systemImage: "questionmark.circle")
-                }
-                .tag("Help")
+            ScrollView {
+                ContactUs()
+                    .padding()
+            }
+            .tabItem { 
+                Label("Help", systemImage: "questionmark.circle")
+            }
+            .tag("Help")
         }
-        .frame(width: 450, height: 250)
+        .frame(width: 450)
     }
     
 }

@@ -10,50 +10,138 @@ import SwiftUI
 struct GeneralSettings: View {
     @StateObject private var globalState = GlobalState.shared
     
-    func getAppVersion() -> String {
-            if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-                return appVersion
-            }
-            return "Unknown"
-        }
-    
     var body: some View {
-        Form {
-            Section("Music folder") {
-                MusicFolderSelection()
+        VStack(alignment: .leading, spacing: 24) {
+            // Music Library Section
+            VStack(alignment: .leading, spacing: 16) {
+                Label("Music Library", systemImage: "music.note")
+                    .font(.headline)
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    // Folder Selection
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Music Folder")
+                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                        
+                        MusicFolderSelection()
+                    }
+                    
+                    Divider()
+                    
+                    // iTunes Toggle
+                    VStack(alignment: .leading, spacing: 4) {
+                        Toggle(isOn: $globalState.includeItunesFolder) {
+                            Text("Include iTunes Library")
+                        }
+                        .toggleStyle(.switch)
+                        
+                        Text("Also scan the iTunes Music folder")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(12)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(8)
             }
-            Toggle(isOn: $globalState.includeItunesFolder) {
-                Text("Include iTunes Music")
+            
+            // Appearance Section
+            VStack(alignment: .leading, spacing: 16) {
+                Label("Appearance", systemImage: "paintbrush")
+                    .font(.headline)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Theme")
+                        .foregroundColor(.secondary)
+                        .font(.subheadline)
+                    
+                    AppearanceSection(selection: $globalState.appearance)
+                }
+                .padding(12)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(8)
             }
-            .toggleStyle(.checkbox)
-            Spacer(minLength: 30)
-            AppearanceSection(selection: $globalState.appearance)
+            
             Spacer()
-            #if DEBUG
-            Button(action: {
-                UserDefaults.standard.reset()
-            }, label: {
-                Label("Emit UserDefaults Data", systemImage: "circle")
-            })
-            #endif
-            Text("Version: \(getAppVersion())")
+            
+            // Footer
+            HStack {
+                Text("Version \(getAppVersion())")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                #if DEBUG
+                Button(action: {
+                    UserDefaults.standard.reset()
+                }) {
+                    Label("Reset Settings", systemImage: "arrow.counterclockwise")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
+                #endif
+            }
         }
-        .fixedSize()
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+    
+    func getAppVersion() -> String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
     }
 }
 
 struct AppearanceSection: View {
     @Binding var selection: String
-    let colors = ["System", "Light", "Dark"]
+    let themes = ["System", "Light", "Dark"]
     
     var body: some View {
-        Picker("Appearance:", selection: $selection) {
-            ForEach(colors, id: \.self) {
-                Text($0)
+        HStack(spacing: 8) {
+            ForEach(themes, id: \.self) { theme in
+                ThemeButton(
+                    title: theme,
+                    icon: themeIcon(for: theme),
+                    isSelected: selection == theme
+                ) {
+                    selection = theme
+                }
             }
         }
-        .pickerStyle(.menu)
+    }
+    
+    private func themeIcon(for theme: String) -> String {
+        switch theme {
+        case "System": return "circle.lefthalf.filled"
+        case "Light": return "sun.max"
+        case "Dark": return "moon"
+        default: return ""
+        }
+    }
+}
+
+struct ThemeButton: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                Text(title)
+                    .font(.caption)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(isSelected ? Color.accentColor : Color.clear)
+            .foregroundColor(isSelected ? .white : .primary)
+            .cornerRadius(6)
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -62,18 +150,31 @@ struct MusicFolderSelection: View {
     @State private var showFolderPicker = false
     
     var body: some View {
-            Button(action: {
-                showFolderPicker.toggle()
-            })
-            {
-                Text("\(globalState.musicFolderDir.isEmpty ? "Not Selected" : globalState.musicFolderDir)")
-                    .help("\(globalState.musicFolderDir.isEmpty ? "Not Selected" : globalState.musicFolderDir)")
-            }.fileImporter(isPresented: $showFolderPicker, allowedContentTypes: [.folder], allowsMultipleSelection: false) { result in
+        Button(action: { showFolderPicker.toggle() }) {
+            HStack {
+                Image(systemName: "folder")
+                Text(globalState.musicFolderDir.isEmpty ? "Choose folder..." : globalState.musicFolderDir)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(8)
+            .background(Color.white.opacity(0.5))
+            .cornerRadius(6)
+        }
+        .buttonStyle(.plain)
+        .fileImporter(
+            isPresented: $showFolderPicker,
+            allowedContentTypes: [.folder],
+            allowsMultipleSelection: false
+        ) { result in
             switch result {
             case .success(let urls):
                 if let url = urls.first {
                     if url.startAccessingSecurityScopedResource() {
-                        
                         globalState.musicFolderDir = url.path
                         saveFolderBookmark(url: url)
                         url.stopAccessingSecurityScopedResource()
@@ -89,14 +190,12 @@ struct MusicFolderSelection: View {
         do {
             let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
             UserDefaults.standard.set(bookmarkData, forKey: "musicFolderBookmark")
-            
             globalState.restoreBookmarkData(bookmarkData)
         } catch {
             print("Failed to save bookmark data: \(error)")
         }
     }
 }
-
 
 #Preview {
     SettingsView()

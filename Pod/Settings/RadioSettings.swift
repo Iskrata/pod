@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import Combine
 
 struct RadioStation: Codable, Identifiable, Hashable {
     let id: String
@@ -16,19 +17,34 @@ struct RadioStation: Codable, Identifiable, Hashable {
 }
 
 class RadioSettingsViewModel: ObservableObject {
-    @Published var searchText = ""
+    @Published var searchText: String = ""
     @Published var searchResults: [RadioStation] = []
     @Published var favoriteStations: [RadioStation] = []
-    @Published var selectedStation: RadioStation?
-    @Published var isSearching = false
+    @Published var isSearching: Bool = false
     @Published var errorMessage: String?
+    @Published var selectedStation: RadioStation?
     @Published var suggestedStations: [RadioStation] = []
+    
+    private var searchTask: Task<Void, Never>?
+    private var cancellables = Set<AnyCancellable>()
     
     private let baseURL = "https://de1.api.radio-browser.info/json/stations/search"
     
     init() {
         loadFavorites()
         loadSuggestedStations()
+        
+        // Set up search text observation
+        $searchText
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .sink { [weak self] text in
+                if !text.isEmpty {
+                    self?.searchStations()
+                } else {
+                    self?.searchResults = []
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func searchStations() {
@@ -90,13 +106,16 @@ class RadioSettingsViewModel: ObservableObject {
     private func saveFavorites() {
         if let encoded = try? JSONEncoder().encode(favoriteStations) {
             UserDefaults.standard.set(encoded, forKey: "favoriteStations")
+            
+            // Notify AlbumViewModel to reload favorites
+            NotificationCenter.default.post(name: NSNotification.Name("FavoriteStationsChanged"), object: nil)
         }
     }
     
     private func loadFavorites() {
         if let data = UserDefaults.standard.data(forKey: "favoriteStations"),
            let decoded = try? JSONDecoder().decode([RadioStation].self, from: data) {
-            favoriteStations = decoded
+            self.favoriteStations = decoded
         }
     }
     
@@ -148,15 +167,11 @@ struct SearchContentView: View {
     
     var body: some View {
         VStack {
-            // Search field
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
                 TextField("Search radio stations", text: $viewModel.searchText)
                     .textFieldStyle(.plain)
-                    .onSubmit {
-                        viewModel.searchStations()
-                    }
             }
             .padding(8)
             .background(Color(NSColor.controlBackgroundColor))

@@ -19,7 +19,7 @@ class OnboardingViewModel: ProtocolView {
     func inc() {
         UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
         
-        if (self.activeScreen < 3) {
+        if (self.activeScreen < 4) {
             self.activeScreen += 1
         } else {
             GlobalState.shared.activeView = .albums

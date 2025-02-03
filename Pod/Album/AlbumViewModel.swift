@@ -39,6 +39,21 @@ class AlbumViewModel: ProtocolView {
                 self?.loadFavoriteRadioStations()
             }
             .store(in: &cancellables)
+        
+        // Listen for changes in favorite stations
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(reloadFavoriteStations),
+            name: NSNotification.Name("FavoriteStationsChanged"),
+            object: nil
+        )
+    }
+    
+    @objc private func reloadFavoriteStations() {
+        // Remove existing radio stations
+        albums.removeAll { $0.isRadioStation }
+        // Load updated favorites
+        loadFavoriteRadioStations()
     }
     
     func sortAlbums() {

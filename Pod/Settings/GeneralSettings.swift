@@ -74,11 +74,22 @@ struct GeneralSettings: View {
                 Spacer()
                 
                 #if DEBUG
-                Button(action: {
-                    UserDefaults.standard.reset()
-                }) {
-                    Label("Reset Settings", systemImage: "arrow.counterclockwise")
-                        .foregroundColor(.red)
+                HStack(spacing: 12) {
+                    Button(action: {
+                        UserDefaults.standard.reset()
+                    }) {
+                        Label("Reset Settings", systemImage: "arrow.counterclockwise")
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button(action: {
+                        UserDefaults.standard.set(false, forKey: "hasLaunchedBefore")
+                        GlobalState.shared.activeView = .onboarding
+                        NSApplication.shared.keyWindow?.close()
+                    }) {
+                        Label("Restart Onboarding", systemImage: "arrow.triangle.2.circlepath")
+                            .foregroundColor(.blue)
+                    }
                 }
                 .buttonStyle(.plain)
                 #endif
@@ -137,6 +148,7 @@ struct ThemeButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
+            .contentShape(Rectangle())
             .background(isSelected ? Color.accentColor : Color.clear)
             .foregroundColor(isSelected ? .white : .primary)
             .cornerRadius(6)

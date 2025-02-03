@@ -16,27 +16,27 @@ struct SettingsView: View {
                 GeneralSettings()
                     .padding()
             }
+            .tag("General")
             .tabItem {
                 Label("General", systemImage: "gearshape.fill")
             }
-            .tag("General")
             
             RadioSettings()
-                .tabItem {
-                    Label("Radio", systemImage: "radio")
-                }
-                .tag("Radio")
+            .tag("Radio")
+            .tabItem {
+                Label("Radio", systemImage: "radio")
+            }
             
             ScrollView {
                 ContactUs()
                     .padding()
             }
+            .tag("Help")
             .tabItem { 
                 Label("Help", systemImage: "questionmark.circle")
             }
-            .tag("Help")
         }
-        .frame(width: 450)
+        .frame(width: 500)
     }
     
 }

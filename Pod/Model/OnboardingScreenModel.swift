@@ -15,12 +15,14 @@ struct OnboardingScreenModel: Identifiable {
     
     var heading: String?
     var description: String?
+    var isRadioSetup: Bool
     
-    init(title: String, iconName: String, heading: String? = nil, description: String? = nil) {
+    init(title: String, iconName: String, heading: String? = nil, description: String? = nil, isRadioSetup: Bool = false) {
         self.title = title
         self.iconName = iconName
         self.heading = heading
         self.description = description
+        self.isRadioSetup = isRadioSetup
     }
 }
     

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B10DB1FB2D50D11000838577 /* RadioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10DB1FA2D50D11000838577 /* RadioSettings.swift */; };
 		B125689D2C3E628F00410782 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B125689C2C3E628F00410782 /* SettingsView.swift */; };
 		B129C74D2C33E9E400E185C8 /* HomeDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */; };
 		B149B95E2C28124000B13AFA /* LoadAudioFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */; };
@@ -34,6 +35,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B10DB1FA2D50D11000838577 /* RadioSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioSettings.swift; sourceTree = "<group>"; };
+		B10DB1FC2D50DBC000838577 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B125689C2C3E628F00410782 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDirectory.swift; sourceTree = "<group>"; };
 		B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadAudioFiles.swift; sourceTree = "<group>"; };
@@ -120,6 +123,7 @@
 		B1BBDD282C26C37F00C062D8 /* Pod */ = {
 			isa = PBXGroup;
 			children = (
+				B10DB1FC2D50DBC000838577 /* Info.plist */,
 				B1E77E642C50DD260054DC3C /* Wheel */,
 				B1E77E632C50DCF70054DC3C /* Settings */,
 				B1E77E622C50DBCD0054DC3C /* Updates */,
@@ -180,6 +184,7 @@
 				B125689C2C3E628F00410782 /* SettingsView.swift */,
 				B1E77E652C50DDBE0054DC3C /* GeneralSettings.swift */,
 				B1E77E672C50DE560054DC3C /* ContactUs.swift */,
+				B10DB1FA2D50D11000838577 /* RadioSettings.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -286,6 +291,7 @@
 				B1BBDD2A2C26C37F00C062D8 /* PodApp.swift in Sources */,
 				B19C2F582C4176260086A191 /* UpdateChecker.swift in Sources */,
 				B19C2F5A2C4177230086A191 /* ClickWheel.swift in Sources */,
+				B10DB1FB2D50D11000838577 /* RadioSettings.swift in Sources */,
 				B19F79622C2FFEDA00411F62 /* Album.swift in Sources */,
 				B1E77E662C50DDBE0054DC3C /* GeneralSettings.swift in Sources */,
 				B1E77E682C50DE560054DC3C /* ContactUs.swift in Sources */,
@@ -428,6 +434,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Pod/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Pod;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -458,6 +465,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Pod/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Pod;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

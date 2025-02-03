@@ -30,11 +30,13 @@ class AlbumViewModel: ProtocolView {
     init() {
         self.loadUrl = settings.musicFolderDir
         self.loadDirectories()
+        self.loadFavoriteRadioStations()
         
         settings.$musicFolderDir
             .sink { [weak self] newFolderPath in
                 self?.loadUrl = newFolderPath
                 self?.loadDirectories()
+                self?.loadFavoriteRadioStations()
             }
             .store(in: &cancellables)
     }
@@ -115,6 +117,25 @@ class AlbumViewModel: ProtocolView {
         return nil
     }
     
+    private func loadFavoriteRadioStations() {
+        if let data = UserDefaults.standard.data(forKey: "favoriteStations"),
+           let stations = try? JSONDecoder().decode([RadioStation].self, from: data) {
+            
+            let radioAlbums = stations.map { station in
+                Album(
+                    name: station.name,
+                    coverImage: NSImage(systemSymbolName: "radio", accessibilityDescription: nil),
+                    path: station.id,
+                    isRadioStation: true,
+                    streamUrl: station.url
+                )
+            }
+            
+            albums.append(contentsOf: radioAlbums)
+            sortAlbums()
+        }
+    }
+    
     func nextClick() {
         
     }
@@ -130,8 +151,19 @@ class AlbumViewModel: ProtocolView {
     }
     
     func middleClick() {
-        GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
-        GlobalState.shared.activeView = .song
+        let selectedAlbum = albums[activeIndex]
+        
+        if selectedAlbum.isRadioStation {
+            if let streamUrl = selectedAlbum.streamUrl {
+                GlobalState.shared.songViewModel.playRadioStation(
+                    url: streamUrl,
+                    name: selectedAlbum.name
+                )
+            }
+        } else {
+            GlobalState.shared.selectedAlbumDir = selectedAlbum.path
+            GlobalState.shared.activeView = .song
+        }
     }
     
     func wheelUp(){

@@ -14,6 +14,10 @@ struct SettingsView: View {
                 .tabItem {
                     Label("General", systemImage: "gearshape.fill")
                 }
+            RadioSettings()
+                .tabItem {
+                    Label("Radio", systemImage: "radio")
+                }
             ContactUs()
                 .tabItem { Label("Help", systemImage: "questionmark.circle") }
         }

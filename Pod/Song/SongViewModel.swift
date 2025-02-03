@@ -30,12 +30,21 @@ class SongViewModel: ProtocolView {
     @Published var currentTime: TimeInterval = 0.0
     var duration: TimeInterval = 0.0
     
+    var isRadioStation = false
+    var currentRadioName = ""
+    var streamPlayer: AVPlayer?
+    
     init()
     {
         self.setupRemoteCommandCenter()
     }
     
     func loadAudioFile(_ path: String) {
+        // Stop any existing radio playback
+        streamPlayer?.pause()
+        streamPlayer = nil
+        isRadioStation = false
+        
         do {
             let url = URL(fileURLWithPath: path)
             audioPlayer = try AVAudioPlayer(contentsOf: url)
@@ -51,21 +60,68 @@ class SongViewModel: ProtocolView {
         }
     }
     
+    func playRadioStation(url: String, name: String) {
+        // Stop any existing playback
+        audioPlayer?.stop()
+        audioPlayer = nil
+        streamPlayer?.pause()
+        streamPlayer = nil
+        
+        guard let streamURL = URL(string: url) else {
+            print("Invalid stream URL")
+            return
+        }
+        
+        // Create an AVPlayerItem with the stream URL
+        let playerItem = AVPlayerItem(url: streamURL)
+        streamPlayer = AVPlayer(playerItem: playerItem)
+        
+        currentRadioName = name
+        isRadioStation = true
+        duration = 0
+        currentTime = 0
+        
+        // Switch to song view before playing
+        GlobalState.shared.activeView = .song
+        
+        // Start playing
+        streamPlayer?.play()
+        isPlaying = true
+        
+        updateNowPlayingInfo()
+        TelemetryDeck.signal("Radio.play", parameters: ["stationName": name])
+    }
+    
     func updateNowPlayingInfo() {
-        
         var nowPlayingInfo = [String: Any]()
-        nowPlayingInfo[MPMediaItemPropertyTitle] = songs[currentSong].title
-        nowPlayingInfo[MPMediaItemPropertyArtist] = songs[currentSong].artist
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = audioPlayer?.duration ?? 0.0
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = audioPlayer?.currentTime ?? 0.0
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = (audioPlayer?.isPlaying ?? false) ? 1.0 : 0.0
         
-        let songImage: NSImage? = songs[currentSong].coverImage
-        if (songImage != nil) {
-            let albumArt: MPMediaItemArtwork = MPMediaItemArtwork(boundsSize: songImage!.size) { size in
-                songImage!
+        if isRadioStation {
+            nowPlayingInfo[MPMediaItemPropertyTitle] = currentRadioName
+            nowPlayingInfo[MPMediaItemPropertyArtist] = "Live Radio"
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = 0.0
+            nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0.0
+            nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
+            
+            // Add a radio icon for radio stations
+            if let radioIcon = NSImage(systemSymbolName: "radio", accessibilityDescription: nil) {
+                let artwork = MPMediaItemArtwork(boundsSize: radioIcon.size) { size in
+                    radioIcon
+                }
+                nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
             }
-            nowPlayingInfo[MPMediaItemPropertyArtwork] = albumArt
+        } else {
+            nowPlayingInfo[MPMediaItemPropertyTitle] = songs[currentSong].title
+            nowPlayingInfo[MPMediaItemPropertyArtist] = songs[currentSong].artist
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = audioPlayer?.duration ?? 0.0
+            nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = audioPlayer?.currentTime ?? 0.0
+            nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = (audioPlayer?.isPlaying ?? false) ? 1.0 : 0.0
+            
+            if let songImage = songs[currentSong].coverImage {
+                let albumArt = MPMediaItemArtwork(boundsSize: songImage.size) { size in
+                    songImage
+                }
+                nowPlayingInfo[MPMediaItemPropertyArtwork] = albumArt
+            }
         }
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
@@ -217,6 +273,25 @@ class SongViewModel: ProtocolView {
     }
     
     func menuClick() {
+        // Clean up when going back to album view
+        if isRadioStation {
+            streamPlayer?.pause()
+            streamPlayer = nil
+        } else {
+            audioPlayer?.stop()
+            audioPlayer = nil
+        }
+        isPlaying = false
+        isRadioStation = false
+        currentRadioName = ""
         GlobalState.shared.activeView = .albums
+    }
+    
+    deinit {
+        stopTimer()
+        streamPlayer?.pause()
+        streamPlayer = nil
+        audioPlayer?.stop()
+        audioPlayer = nil
     }
 }

@@ -18,7 +18,13 @@ struct SongView: View {
             
             HStack(spacing: 20) {
                 VStack {
-                    if let coverImage = viewModel.songs[viewModel.currentSong].coverImage {
+                    if viewModel.isRadioStation {
+                        Image(systemName: "radio")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 100, height: 100)
+                            .modifier(PerspectiveTransformEffect())
+                    } else if let coverImage = viewModel.songs[viewModel.currentSong].coverImage {
                         Image(nsImage: coverImage)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -29,17 +35,36 @@ struct SongView: View {
                     }
                 }
                 
-                SongInfo(title: viewModel.getCurrentSongTitle(), artist: viewModel.getCurrentSongArtist(), album: viewModel.getCurrentSongAlbum())
+                if viewModel.isRadioStation {
+                    SongInfo(
+                        title: viewModel.currentRadioName,
+                        artist: "Live Radio",
+                        album: nil
+                    )
+                } else {
+                    SongInfo(
+                        title: viewModel.getCurrentSongTitle(),
+                        artist: viewModel.getCurrentSongArtist(),
+                        album: viewModel.getCurrentSongAlbum()
+                    )
+                }
                 Spacer()
             }.padding()
             
-            SongProgress(currentTime: viewModel.formattedCurrentTime, duration: viewModel.formattedDuration, viewModel: viewModel)
+            if !viewModel.isRadioStation {
+                SongProgress(
+                    currentTime: viewModel.formattedCurrentTime,
+                    duration: viewModel.formattedDuration,
+                    viewModel: viewModel
+                )
+            }
         }.onAppear(perform: {
-            viewModel.songs = loadAudioFiles(from: settings.selectedAlbumDir)
-            viewModel.loadAudioFile(viewModel.songs[viewModel.currentSong].pathToAudioFile)
-            viewModel.playPauseClick()
+            if !viewModel.isRadioStation {
+                viewModel.songs = loadAudioFiles(from: settings.selectedAlbumDir)
+                viewModel.loadAudioFile(viewModel.songs[viewModel.currentSong].pathToAudioFile)
+                viewModel.playPauseClick()
+            }
         })
-        
     }
 }
 

@@ -19,11 +19,34 @@ struct SongView: View {
             HStack(spacing: 20) {
                 VStack {
                     if viewModel.isRadioStation {
-                        Image(systemName: "radio")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 100, height: 100)
-                            .modifier(PerspectiveTransformEffect())
+                        ZStack(alignment: .bottomTrailing) {
+                            Rectangle()
+                                .fill(Color.accentColor)
+                                .frame(width: 100, height: 100)
+                                .cornerRadius(2)
+                                .overlay(
+                                    Text("RADIO")
+                                        .font(.system(size: 30, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.3))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.1)
+                                        .frame(width: 100, height: 100)
+                                )
+                                .modifier(PerspectiveTransformEffect())
+                            
+                            Image(systemName: "radio")
+                                .font(.system(size: 20))
+                                .foregroundColor(.white.opacity(0.3))
+                                .padding(8)
+                                .rotation3DEffect(
+                                    .degrees(15),
+                                    axis: (x: 0, y: 1, z: 0),
+                                    anchor: .center,
+                                    anchorZ: 0,
+                                    perspective: 0.5
+                                )
+                        }
+                        .modifier(PerspectiveTransformEffect())
                     } else if let coverImage = viewModel.songs[viewModel.currentSong].coverImage {
                         Image(nsImage: coverImage)
                             .resizable()

@@ -31,7 +31,6 @@ struct AlbumsView: View {
                                     .frame(width: 30, height: 30)
                                 Text("No music found.").bold()
                                 Text("Move some mp3's into the Music folder on your Mac").font(.system(size: 10, design: .default))
-                                
                             }.frame(width: 150)
                             Spacer()
                         }
@@ -43,17 +42,38 @@ struct AlbumsView: View {
                                     GeometryReader { innerGeometry in
                                         VStack(spacing: 10) {
                                             if index < viewModel.albums.count {
-                                                if let coverImage = viewModel.albums[index].coverImage {
-                                                    Image(nsImage:coverImage)
-                                                        .resizable()
-                                                        .frame(width: 150, height: 150)
-                                                        .cornerRadius(2)
-                                                } else {
-                                                    Rectangle()
-                                                        .fill(Color.gray)
-                                                        .frame(width: 150, height: 150)
-                                                        .cornerRadius(2)
+                                                ZStack(alignment: .bottomTrailing) {
+                                                    if viewModel.albums[index].isRadioStation {
+                                                        Rectangle()
+                                                            .fill(Color.accentColor)
+                                                            .frame(width: 150, height: 150)
+                                                            .cornerRadius(2)
+                                                            .overlay(
+                                                                Text("RADIO")
+                                                                    .font(.system(size: 30, weight: .bold))
+                                                                    .foregroundColor(.white.opacity(0.3))
+                                                                    .lineLimit(1)
+                                                                    .minimumScaleFactor(0.1)
+                                                                    .frame(width: 150, height: 150)
+                                                            )
+                                                        
+                                                        Image(systemName: "radio")
+                                                            .font(.system(size: 20))
+                                                            .foregroundColor(.white.opacity(0.3))
+                                                            .padding(8)
+                                                    } else if let coverImage = viewModel.albums[index].coverImage {
+                                                        Image(nsImage: coverImage)
+                                                            .resizable()
+                                                            .frame(width: 150, height: 150)
+                                                            .cornerRadius(2)
+                                                    } else {
+                                                        Rectangle()
+                                                            .fill(Color.gray)
+                                                            .frame(width: 150, height: 150)
+                                                            .cornerRadius(2)
+                                                    }
                                                 }
+                                                
                                                 Text(viewModel.albums[index].name)
                                                     .font(.system(size: 13, weight: .heavy))
                                                     .lineLimit(2)
@@ -75,12 +95,9 @@ struct AlbumsView: View {
                             .offset(x: viewModel.scrollOffset)
                         }
                     }
-                  
                     Spacer()
                 }
-         
                 .onChange(of: viewModel.activeIndex) { newIndex in
-                    // Update scroll offset when activeIndex changes
                     withAnimation {
                         updateScrollOffset(for: newIndex, in: outerGeometry.size)
                     }

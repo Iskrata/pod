@@ -34,39 +34,47 @@ struct ContentView: View {
     @AppStorage("fontSize") var fontSize = 13.0
     
     @StateObject private var globalState = GlobalState.shared
+    @StateObject private var licenseManager = LicenseManager.shared
     
-    private var views: [Screen: any ProtocolView] = [
+    private let views: [Screen: any ProtocolView] = [
         .onboarding: OnboardingViewModel(),
         .song: GlobalState.shared.songViewModel,
-        .albums: AlbumViewModel(),
+        .albums: GlobalState.shared.albumViewModel,
     ]
     
     var body: some View {
-        ZStack {
-            VStack {
-                Rectangle()
-                    .fill(Color.white)
-                    .frame(width: 320, height: 240)
-                    .overlay(ZStack {
-                        if let currentView = views[globalState.activeView]?.view {
-                            AnyView(currentView)
-                        } else {
-                            Text("No View Available")
-                        }
-                    })
-                    .border(Color.black, width: 4)
-                    .shadow(radius: 10)
-                    .cornerRadius(5)
-                
-                Spacer()
-                
-                ClickWheel(views: views)
+        Group {
+            if licenseManager.canUseApp {
+                ZStack {
+                    VStack {
+                        Rectangle()
+                            .fill(Color.white)
+                            .frame(width: 320, height: 240)
+                            .overlay(ZStack {
+                                if let currentView = views[globalState.activeView]?.view {
+                                    AnyView(currentView)
+                                } else {
+                                    Text("No View Available")
+                                }
+                            })
+                            .border(Color.black, width: 4)
+                            .shadow(radius: 10)
+                            .cornerRadius(5)
+                        
+                        Spacer()
+                        
+                        ClickWheel(views: views)
+                    }
+                    .padding()
+                }.background(DiagonalBackgroundView())
+            } else {
+                Color.clear.frame(width: 400, height: 600)
             }
-            .padding()
-        }.background(DiagonalBackgroundView())
+        }
+        .onAppear {
+            _ = licenseManager.canUseApp
+        }
     }
-    
-    
 }
 
 struct ContentView_Previews: PreviewProvider {

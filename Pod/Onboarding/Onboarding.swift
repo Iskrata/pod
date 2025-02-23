@@ -14,6 +14,7 @@ struct Onboarding: View {
 
     var screens: [OnboardingScreenModel] = [
         OnboardingScreenModel(title: "Welcome to Pod", iconName: "appIcon"),
+        OnboardingScreenModel(title: "License", iconName: "key.fill", heading: "7-Day Free Trial", description: "Try Pod for free or enter your license key", isLicenseSetup: true),
         OnboardingScreenModel(title: "Guide", iconName: "music.quarternote.3", heading: "Use the Music folder", description: "Paste your music into the Music folder on your Mac."),
         OnboardingScreenModel(title: "Guide", iconName: "hand.draw.fill", heading: "Click Hold Drag", description: "Click wheel is used by dragging in a circle"),
         OnboardingScreenModel(title: "Radio", iconName: "radio", heading: "Internet Radio", description: "Add your favorite radio stations", isRadioSetup: true),
@@ -22,7 +23,9 @@ struct Onboarding: View {
     
     var body: some View {
         ZStack {
-            if screens[viewModel.activeScreen].isRadioSetup {
+            if screens[viewModel.activeScreen].isLicenseSetup {
+                LicenseSetupScreen()
+            } else if screens[viewModel.activeScreen].isRadioSetup {
                 RadioSetupScreen(radioViewModel: radioViewModel)
             } else {
                 OnboardingScreen(screen: screens[viewModel.activeScreen], activeScreen: viewModel.activeScreen)

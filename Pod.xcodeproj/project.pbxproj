@@ -14,6 +14,10 @@
 		B149B9602C282BEB00B13AFA /* SongView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149B95F2C282BEB00B13AFA /* SongView.swift */; };
 		B150D0432C4ED1E900A03CE3 /* TelemetryDeck in Frameworks */ = {isa = PBXBuildFile; productRef = B150D0422C4ED1E900A03CE3 /* TelemetryDeck */; };
 		B15790A42C2C7A2100179E62 /* SongViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15790A32C2C7A2100179E62 /* SongViewModel.swift */; };
+		B18864DB2D5A1D250097A786 /* LicenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B18864D92D5A1D250097A786 /* LicenseManager.swift */; };
+		B18864DC2D5A1D250097A786 /* LicenseActivationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B18864D82D5A1D250097A786 /* LicenseActivationView.swift */; };
+		B18864DE2D5A1F140097A786 /* LicenseSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = B18864DD2D5A1F140097A786 /* LicenseSetupScreen.swift */; };
+		B18864E02D5A1FCF0097A786 /* LicenseWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B18864DF2D5A1FCF0097A786 /* LicenseWindowManager.swift */; };
 		B19420FE2C3BDC7B00C918B5 /* Onboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19420FD2C3BDC7B00C918B5 /* Onboarding.swift */; };
 		B19421002C3BE33000C918B5 /* OnboardingScreenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19420FF2C3BE33000C918B5 /* OnboardingScreenModel.swift */; };
 		B19421032C3BE88600C918B5 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19421022C3BE88600C918B5 /* OnboardingViewModel.swift */; };
@@ -42,6 +46,10 @@
 		B149B95D2C28124000B13AFA /* LoadAudioFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadAudioFiles.swift; sourceTree = "<group>"; };
 		B149B95F2C282BEB00B13AFA /* SongView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongView.swift; sourceTree = "<group>"; };
 		B15790A32C2C7A2100179E62 /* SongViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongViewModel.swift; sourceTree = "<group>"; };
+		B18864D82D5A1D250097A786 /* LicenseActivationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseActivationView.swift; sourceTree = "<group>"; };
+		B18864D92D5A1D250097A786 /* LicenseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseManager.swift; sourceTree = "<group>"; };
+		B18864DD2D5A1F140097A786 /* LicenseSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseSetupScreen.swift; sourceTree = "<group>"; };
+		B18864DF2D5A1FCF0097A786 /* LicenseWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseWindowManager.swift; sourceTree = "<group>"; };
 		B19420FD2C3BDC7B00C918B5 /* Onboarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Onboarding.swift; sourceTree = "<group>"; };
 		B19420FF2C3BE33000C918B5 /* OnboardingScreenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScreenModel.swift; sourceTree = "<group>"; };
 		B19421022C3BE88600C918B5 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
@@ -76,9 +84,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B18864DA2D5A1D250097A786 /* Licensing */ = {
+			isa = PBXGroup;
+			children = (
+				B18864DF2D5A1FCF0097A786 /* LicenseWindowManager.swift */,
+				B18864D82D5A1D250097A786 /* LicenseActivationView.swift */,
+				B18864D92D5A1D250097A786 /* LicenseManager.swift */,
+			);
+			path = Licensing;
+			sourceTree = "<group>";
+		};
 		B19421012C3BE85D00C918B5 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				B18864DD2D5A1F140097A786 /* LicenseSetupScreen.swift */,
 				B19420FD2C3BDC7B00C918B5 /* Onboarding.swift */,
 				B19421022C3BE88600C918B5 /* OnboardingViewModel.swift */,
 			);
@@ -124,6 +143,7 @@
 			isa = PBXGroup;
 			children = (
 				B10DB1FC2D50DBC000838577 /* Info.plist */,
+				B18864DA2D5A1D250097A786 /* Licensing */,
 				B1E77E642C50DD260054DC3C /* Wheel */,
 				B1E77E632C50DCF70054DC3C /* Settings */,
 				B1E77E622C50DBCD0054DC3C /* Updates */,
@@ -275,6 +295,7 @@
 			files = (
 				B129C74D2C33E9E400E185C8 /* HomeDirectory.swift in Sources */,
 				B19F79682C30125400411F62 /* ProtocolViewModel.swift in Sources */,
+				B18864DE2D5A1F140097A786 /* LicenseSetupScreen.swift in Sources */,
 				B125689D2C3E628F00410782 /* SettingsView.swift in Sources */,
 				B19F79662C30083400411F62 /* AlbumViewModel.swift in Sources */,
 				B19421002C3BE33000C918B5 /* OnboardingScreenModel.swift in Sources */,
@@ -284,7 +305,10 @@
 				B149B9602C282BEB00B13AFA /* SongView.swift in Sources */,
 				B19421032C3BE88600C918B5 /* OnboardingViewModel.swift in Sources */,
 				B19C2F5C2C42BFF10086A191 /* Screen.swift in Sources */,
+				B18864DB2D5A1D250097A786 /* LicenseManager.swift in Sources */,
+				B18864DC2D5A1D250097A786 /* LicenseActivationView.swift in Sources */,
 				B19F79602C2FFD3900411F62 /* AlbumView.swift in Sources */,
+				B18864E02D5A1FCF0097A786 /* LicenseWindowManager.swift in Sources */,
 				B19F796A2C3025F100411F62 /* GlobalState.swift in Sources */,
 				B1BBDD2C2C26C37F00C062D8 /* ContentView.swift in Sources */,
 				B19420FE2C3BDC7B00C918B5 /* Onboarding.swift in Sources */,

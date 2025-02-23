@@ -10,7 +10,26 @@ import AVFoundation
 
 struct AlbumsView: View {
     @ObservedObject var viewModel: AlbumViewModel
+    @State private var isAnimating = false
     
+    private func animatedBars() -> some View {
+        HStack(spacing: 3) {
+            ForEach(0..<3) { index in
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(Color.accentColor.opacity(0.8))
+                    .frame(width: 3, height: 16)
+                    .scaleEffect(y: isAnimating ? [0.7, 1.0, 0.85][index] : 0.3)
+                    .animation(
+                        Animation.easeInOut(duration: [0.6, 0.5, 0.7][index])
+                            .repeatForever(autoreverses: true)
+                            .delay(Double(index) * 0.15),
+                        value: isAnimating
+                    )
+            }
+        }
+        .frame(width: 15, height: 16)
+    }
+
     func scale(for innerFrame: CGRect, in outerFrame: CGRect) -> CGFloat {
         let scale = max(0.8, min(1, 1 - abs(innerFrame.midX - outerFrame.midX) / outerFrame.width))
         return scale
@@ -44,23 +63,7 @@ struct AlbumsView: View {
                                             if index < viewModel.albums.count {
                                                 ZStack(alignment: .bottomTrailing) {
                                                     if viewModel.albums[index].isRadioStation {
-                                                        Rectangle()
-                                                            .fill(Color.accentColor)
-                                                            .frame(width: 150, height: 150)
-                                                            .cornerRadius(2)
-                                                            .overlay(
-                                                                Text("RADIO")
-                                                                    .font(.system(size: 30, weight: .bold))
-                                                                    .foregroundColor(.white.opacity(0.3))
-                                                                    .lineLimit(1)
-                                                                    .minimumScaleFactor(0.1)
-                                                                    .frame(width: 150, height: 150)
-                                                            )
-                                                        
-                                                        Image(systemName: "radio")
-                                                            .font(.system(size: 20))
-                                                            .foregroundColor(.white.opacity(0.3))
-                                                            .padding(8)
+                                                        RadioStationView(size: 150)
                                                     } else if let coverImage = viewModel.albums[index].coverImage {
                                                         Image(nsImage: coverImage)
                                                             .resizable()

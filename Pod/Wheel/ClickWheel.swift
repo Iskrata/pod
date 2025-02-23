@@ -7,11 +7,15 @@
 
 import SwiftUI
 
+class WheelState: ObservableObject {
+    static let shared = WheelState()
+    var lastAngle: Double?
+    var scrollDirections: [Double] = []
+}
+
 struct ClickWheel: View {
     var views: [Screen: any ProtocolView]
-    
-    @State private var lastAngle: Double?
-    @State private var scrollDirections: [Double] = []
+    private let wheelState = WheelState.shared
     
     func handleDragChange(value: DragGesture.Value) {
         let center = CGPoint(x: 150, y: 150)
@@ -19,7 +23,7 @@ struct ClickWheel: View {
         
         let angle = atan2(currentPoint.y - center.y, currentPoint.x - center.x) * 180 / .pi
         
-        if let lastAngle = self.lastAngle {
+        if let lastAngle = wheelState.lastAngle {
             var angleDelta = angle - lastAngle
             
             if angleDelta > 180 {
@@ -29,27 +33,26 @@ struct ClickWheel: View {
             }
             
             if abs(angleDelta) > 5 {
-                scrollDirections.append(angleDelta)
+                wheelState.scrollDirections.append(angleDelta)
                 
-                if scrollDirections.count > 5 {
-                    scrollDirections.removeFirst()
+                if wheelState.scrollDirections.count > 5 {
+                    wheelState.scrollDirections.removeFirst()
                 }
                 
-                if scrollDirections.count == 5 {
-                    let averageDirection = scrollDirections.reduce(0, +) / Double(scrollDirections.count)
+                if wheelState.scrollDirections.count == 5 {
+                    let averageDirection = wheelState.scrollDirections.reduce(0, +) / Double(wheelState.scrollDirections.count)
                     
                     if averageDirection > 0 {
                         views[GlobalState.shared.activeView]?.wheelDown()
-                        scrollDirections.removeAll()
+                        wheelState.scrollDirections.removeAll()
                     } else {
                         views[GlobalState.shared.activeView]?.wheelUp()
-                        scrollDirections.removeAll()
-                        
+                        wheelState.scrollDirections.removeAll()
                     }
                 }
             }
         }
-        self.lastAngle = angle
+        wheelState.lastAngle = angle
     }
     
     var body: some View {

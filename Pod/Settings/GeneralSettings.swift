@@ -9,6 +9,8 @@ import SwiftUI
 
 struct GeneralSettings: View {
     @StateObject private var globalState = GlobalState.shared
+    @StateObject private var licenseManager = LicenseManager.shared
+    private let windowManager = LicenseWindowManager.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -57,6 +59,58 @@ struct GeneralSettings: View {
                         .font(.subheadline)
                     
                     AppearanceSection(selection: $globalState.appearance)
+                }
+                .padding(12)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(8)
+            }
+            
+            // License Section
+            VStack(alignment: .leading, spacing: 16) {
+                Label("License", systemImage: "key.fill")
+                    .font(.headline)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    if licenseManager.isLicensed {
+                        HStack {
+                            Text("Licensed")
+                                .foregroundColor(.green)
+                            Spacer()
+                            Button("Deactivate") {
+                                licenseManager.deactivate()
+                            }
+                            .foregroundColor(.red)
+                        }
+                    } else {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Not Licensed")
+                                    .foregroundColor(.red)
+                                if licenseManager.isTrialActive {
+                                    Text("\(licenseManager.trialDaysRemaining) days remaining in trial")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    
+                                    #if DEBUG
+                                    Button("Expire Trial") {
+                                        // Set trial start date to 8 days ago
+                                        let expiredDate = Calendar.current.date(byAdding: .day, value: -8, to: Date())!
+                                        UserDefaults.standard.set(expiredDate, forKey: "app.trial.start")
+                                        // Force refresh license manager
+                                        licenseManager.checkTrialStatus()
+                                    }
+                                    .foregroundColor(.red)
+                                    .font(.caption)
+                                    #endif
+                                }
+                            }
+                            Spacer()
+                            Button("Enter License Key") {
+                                windowManager.showLicenseWindow()
+                            }
+                            .buttonStyle(.link)
+                        }
+                    }
                 }
                 .padding(12)
                 .background(Color.secondary.opacity(0.1))

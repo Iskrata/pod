@@ -10,6 +10,7 @@ class GlobalState: ObservableObject {
     static let shared = GlobalState()
     
     var songViewModel = SongViewModel()
+    lazy var albumViewModel = AlbumViewModel()
     var selectedAlbumDir: String = ""
     
     private init() {

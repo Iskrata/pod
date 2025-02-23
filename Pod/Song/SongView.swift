@@ -19,34 +19,8 @@ struct SongView: View {
             HStack(spacing: 20) {
                 VStack {
                     if viewModel.isRadioStation {
-                        ZStack(alignment: .bottomTrailing) {
-                            Rectangle()
-                                .fill(Color.accentColor)
-                                .frame(width: 100, height: 100)
-                                .cornerRadius(2)
-                                .overlay(
-                                    Text("RADIO")
-                                        .font(.system(size: 30, weight: .bold))
-                                        .foregroundColor(.white.opacity(0.3))
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.1)
-                                        .frame(width: 100, height: 100)
-                                )
-                                .modifier(PerspectiveTransformEffect())
-                            
-                            Image(systemName: "radio")
-                                .font(.system(size: 20))
-                                .foregroundColor(.white.opacity(0.3))
-                                .padding(8)
-                                .rotation3DEffect(
-                                    .degrees(15),
-                                    axis: (x: 0, y: 1, z: 0),
-                                    anchor: .center,
-                                    anchorZ: 0,
-                                    perspective: 0.5
-                                )
-                        }
-                        .modifier(PerspectiveTransformEffect())
+                        RadioStationView(size: 100)
+                            .modifier(PerspectiveTransformEffect())
                     } else if let coverImage = viewModel.songs[viewModel.currentSong].coverImage {
                         Image(nsImage: coverImage)
                             .resizable()
@@ -189,5 +163,53 @@ struct MenuBar: View {
         .background(.menuBarGray)
         .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: 1)
         .shadow(radius: /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
+    }
+}
+
+struct RadioStationView: View {
+    @State private var isAnimating = false
+    var size: CGFloat
+    
+    private func animatedBars() -> some View {
+        HStack(spacing: 3) {
+            ForEach(0..<3) { index in
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(Color.accentColor.opacity(0.8))
+                    .frame(width: 3, height: 16)
+                    .scaleEffect(y: isAnimating ? [0.7, 1.0, 0.85][index] : 0.3)
+                    .animation(
+                        Animation.easeInOut(duration: [0.6, 0.5, 0.7][index])
+                            .repeatForever(autoreverses: true)
+                            .delay(Double(index) * 0.15),
+                        value: isAnimating
+                    )
+            }
+        }
+        .frame(width: 15, height: 16)
+    }
+    
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            Rectangle()
+                .border(Color.accentColor.opacity(0.8), width: 2)
+                .frame(width: size, height: size)
+                .cornerRadius(2)
+                .overlay(
+                    Text("RADIO")
+                        .font(.system(size: size/5, weight: .bold))
+                        .foregroundColor(Color.accentColor.opacity(0.8))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.1)
+                        .frame(width: size, height: size)
+                )
+                .overlay(
+                    animatedBars()
+                        .padding(10),
+                    alignment: .bottomTrailing
+                )
+        }
+        .onAppear {
+            isAnimating = true
+        }
     }
 }

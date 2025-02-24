@@ -189,7 +189,7 @@ class AlbumViewModel: ProtocolView {
         if (activeIndex > 0)
         {
             activeIndex -= 1
-            self.hapticManager.perform(.alignment, performanceTime: .drawCompleted)
+            self.hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
         }
         GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
     }
@@ -202,7 +202,7 @@ class AlbumViewModel: ProtocolView {
         if (activeIndex < albums.count - 1)
         {
             activeIndex += 1
-            self.hapticManager.perform(.alignment, performanceTime: .drawCompleted)
+            self.hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
         }
         GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
     }

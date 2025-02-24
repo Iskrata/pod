@@ -13,22 +13,20 @@ struct Onboarding: View {
     @StateObject private var radioViewModel = RadioSettingsViewModel()
 
     var screens: [OnboardingScreenModel] = [
-        OnboardingScreenModel(title: "Welcome to Pod", iconName: "appIcon"),
-        OnboardingScreenModel(title: "License", iconName: "key.fill", heading: "7-Day Free Trial", description: "Try Pod for free or enter your license key", isLicenseSetup: true),
-        OnboardingScreenModel(title: "Guide", iconName: "music.quarternote.3", heading: "Use the Music folder", description: "Paste your music into the Music folder on your Mac."),
+        OnboardingScreenModel(title: "Welcome to Pod", iconName: "appIcon", description: "Click the middle button to proceed"),
         OnboardingScreenModel(title: "Guide", iconName: "hand.draw.fill", heading: "Click Hold Drag", description: "Click wheel is used by dragging in a circle"),
+        OnboardingScreenModel(title: "Guide", iconName: "music.quarternote.3", heading: "Use the Music folder", description: "Paste your music into the Music folder on your Mac."),
         OnboardingScreenModel(title: "Radio", iconName: "radio", heading: "Internet Radio", description: "Add your favorite radio stations", isRadioSetup: true),
         OnboardingScreenModel(title: "Soon", iconName: "app.connected.to.app.below.fill", heading: "Connect your existing music", description: "Spotify and Apple Music integration"),
+        OnboardingScreenModel(title: "License", iconName: "key.fill", heading: "7-Day Free Trial", description: "Try Pod for free or enter your license key", isLicenseSetup: true),
     ]
     
     var body: some View {
         ZStack {
-            if screens[viewModel.activeScreen].isLicenseSetup {
-                LicenseSetupScreen()
-            } else if screens[viewModel.activeScreen].isRadioSetup {
+            if screens[viewModel.activeScreen].isRadioSetup {
                 RadioSetupScreen(radioViewModel: radioViewModel)
             } else {
-                OnboardingScreen(screen: screens[viewModel.activeScreen], activeScreen: viewModel.activeScreen)
+                OnboardingScreen(screen: screens[viewModel.activeScreen], activeScreen: viewModel.activeScreen, viewModel: viewModel)
             }
         }.padding()
     }
@@ -37,6 +35,10 @@ struct Onboarding: View {
 struct OnboardingScreen: View {
     var screen: OnboardingScreenModel
     var activeScreen: Int
+    @ObservedObject var viewModel: OnboardingViewModel
+    @State private var rotationAngle: Double = 0
+    @State private var upCheckScale: CGFloat = 1
+    @State private var downCheckScale: CGFloat = 1
     
     var body: some View {
         VStack () {
@@ -52,11 +54,13 @@ struct OnboardingScreen: View {
             
             HStack(spacing: 15) {
                 Spacer(minLength: 10)
-                Image(systemName: screen.iconName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(.accentColor)
+                if(activeScreen != 0) {
+                    Image(systemName: screen.iconName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.accentColor)
+                }
                 VStack (alignment: .leading, spacing: 2) {
                     Text(screen.heading ?? "")
                         .foregroundStyle(.black)
@@ -67,7 +71,66 @@ struct OnboardingScreen: View {
                 }
                 Spacer(minLength: 10)
             }
-            Spacer()
+            
+            if activeScreen == 1 {
+                VStack(spacing: 8) {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(viewModel.hasScrolledDown ? .green : .gray)
+                            .scaleEffect(downCheckScale)
+                            .onChange(of: viewModel.hasScrolledDown) { newValue in
+                                if newValue {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                        downCheckScale = 1.3
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        withAnimation(.spring(response: 0.2)) {
+                                            downCheckScale = 1
+                                        }
+                                    }
+                                }
+                            }
+                        Text("Scroll Clockwise")
+                            .foregroundStyle(.black)
+                    }
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(viewModel.hasScrolledUp ? .green : .gray)
+                            .scaleEffect(upCheckScale)
+                            .onChange(of: viewModel.hasScrolledUp) { newValue in
+                                if newValue {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                        upCheckScale = 1.3
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        withAnimation(.spring(response: 0.2)) {
+                                            upCheckScale = 1
+                                        }
+                                    }
+                                }
+                            }
+                        Text("Scroll Counterclockwise")
+                            .foregroundStyle(.black)
+                    }
+                    
+            
+                    // Text("Try both directions to continue")
+                    //     .font(.caption)
+                    //     .foregroundColor(.secondary)
+                }
+                .padding(.top)
+            }
+            
+            if(screen.isLicenseSetup) {
+                Spacer()
+
+                Button("Have a License Key?") {
+                    LicenseWindowManager.shared.showLicenseWindow()
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.blue)
+            }
+            Spacer(minLength: 10)
         }
     }
     
@@ -162,4 +225,8 @@ struct RadioSetupScreen: View {
                 .padding(.top)
         }
     }
+}
+
+#Preview {
+    Onboarding(viewModel: OnboardingViewModel())
 }

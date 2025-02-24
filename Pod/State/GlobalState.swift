@@ -9,11 +9,19 @@ import SwiftUI
 class GlobalState: ObservableObject {
     static let shared = GlobalState()
     
+    private let ONBOARDING_VERSION = "1.1"
+    
     var songViewModel = SongViewModel()
     lazy var albumViewModel = AlbumViewModel()
     var selectedAlbumDir: String = ""
     
     private init() {
+        let savedVersion = UserDefaults.standard.string(forKey: "onboardingVersion")
+        if savedVersion != ONBOARDING_VERSION {
+            UserDefaults.standard.removeObject(forKey: "hasLaunchedBefore")
+            UserDefaults.standard.set(ONBOARDING_VERSION, forKey: "onboardingVersion")
+        }
+        
         if let bookmarkData = UserDefaults.standard.data(forKey: "musicFolderBookmark") {
             restoreBookmarkData(bookmarkData)
         }
@@ -33,7 +41,7 @@ class GlobalState: ObservableObject {
     
     @Published var activeView: Screen = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? .albums : .onboarding
     
-    @Published var appearance: String = UserDefaults.standard.string(forKey: "appearance") ?? "System" {
+    @Published var appearance: String = UserDefaults.standard.string(forKey: "appearance") ?? "Light" {
         didSet {
             UserDefaults.standard.set(appearance, forKey: "appearance")
         }

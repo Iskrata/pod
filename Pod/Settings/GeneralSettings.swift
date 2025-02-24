@@ -92,15 +92,24 @@ struct GeneralSettings: View {
                                         .foregroundColor(.secondary)
                                     
                                     #if DEBUG
-                                    Button("Expire Trial") {
-                                        // Set trial start date to 8 days ago
-                                        let expiredDate = Calendar.current.date(byAdding: .day, value: -8, to: Date())!
-                                        UserDefaults.standard.set(expiredDate, forKey: "app.trial.start")
-                                        // Force refresh license manager
-                                        licenseManager.checkTrialStatus()
+                                    HStack {
+                                        Button("Expire Trial") {
+                                            // Set trial start date to 8 days ago
+                                            let expiredDate = Calendar.current.date(byAdding: .day, value: -8, to: Date())!
+                                            UserDefaults.standard.set(expiredDate, forKey: "app.trial.start")
+                                            // Force refresh license manager
+                                            licenseManager.checkTrialStatus()
+                                        }
+                                        .foregroundColor(.red)
+                                        .font(.caption)
+                                        Button("Reactivate Trial") {
+                                            let expiredDate = Calendar.current.date(byAdding: .day, value: 0, to: Date())!
+                                            UserDefaults.standard.set(expiredDate, forKey: "app.trial.start")
+                                            licenseManager.checkTrialStatus()
+                                        }
+                                        .foregroundColor(.red)
+                                        .font(.caption)
                                     }
-                                    .foregroundColor(.red)
-                                    .font(.caption)
                                     #endif
                                 }
                             }
@@ -160,7 +169,7 @@ struct GeneralSettings: View {
 
 struct AppearanceSection: View {
     @Binding var selection: String
-    let themes = ["System", "Light", "Dark"]
+    let themes = ["Light", "Dark"]
     
     var body: some View {
         HStack(spacing: 8) {
@@ -178,7 +187,6 @@ struct AppearanceSection: View {
     
     private func themeIcon(for theme: String) -> String {
         switch theme {
-        case "System": return "circle.lefthalf.filled"
         case "Light": return "sun.max"
         case "Dark": return "moon"
         default: return ""

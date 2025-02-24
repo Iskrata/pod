@@ -191,6 +191,7 @@ struct RadioStationView: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             Rectangle()
+                .fill(.white)
                 .border(Color.accentColor.opacity(0.8), width: 2)
                 .frame(width: size, height: size)
                 .cornerRadius(2)

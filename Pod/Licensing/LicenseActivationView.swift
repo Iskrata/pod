@@ -50,10 +50,8 @@ struct LicenseActivationView: View {
                 
                 #if DEBUG
                 Button("Expire Trial") {
-                    // Set trial start date to 8 days ago
                     let expiredDate = Calendar.current.date(byAdding: .day, value: -8, to: Date())!
                     UserDefaults.standard.set(expiredDate, forKey: "app.trial.start")
-                    // Force refresh license manager
                     licenseManager.checkTrialStatus()
                 }
                 .buttonStyle(.plain)

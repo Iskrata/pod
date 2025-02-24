@@ -14,14 +14,18 @@ class OnboardingViewModel: ProtocolView {
        }
     
     @Published var activeScreen: Int = 0
+    @Published var hasScrolledUp = false
+    @Published var hasScrolledDown = false
     private let hapticManager = NSHapticFeedbackManager.defaultPerformer
     
-    func inc() {
-        UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
-        
+    func inc() {        
         if (self.activeScreen < 4) {
+            if self.activeScreen == 1 && !(hasScrolledUp && hasScrolledDown) {
+                return
+            }
             self.activeScreen += 1
         } else {
+            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
             GlobalState.shared.activeView = .albums
         }
     }
@@ -45,11 +49,17 @@ class OnboardingViewModel: ProtocolView {
     }
     
     func wheelUp() {
-        self.hapticManager.perform(.alignment, performanceTime: .default)
+        self.hapticManager.perform(.levelChange, performanceTime: .default)
+        if self.activeScreen == 1 {
+            hasScrolledUp = true
+        }
     }
     
     func wheelDown() {
-        self.hapticManager.perform(.alignment, performanceTime: .default)
+        self.hapticManager.perform(.levelChange, performanceTime: .default)
+        if self.activeScreen == 1 {
+            hasScrolledDown = true
+        }
     }
     
     func menuClick() {

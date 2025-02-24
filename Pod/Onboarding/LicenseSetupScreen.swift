@@ -13,10 +13,8 @@ struct LicenseSetupScreen: View {
                 Text("\(licenseManager.trialDaysRemaining) Days Free Trial")
                     .font(.title3)
                     .foregroundColor(.blue)
-                
-                Text("No credit card required")
-                    .foregroundColor(.secondary)
             }
+            
             
             Button("Have a License Key?") {
                 LicenseWindowManager.shared.showLicenseWindow()
@@ -27,3 +25,7 @@ struct LicenseSetupScreen: View {
         .padding()
     }
 } 
+
+#Preview {
+    Onboarding(viewModel: OnboardingViewModel())
+}

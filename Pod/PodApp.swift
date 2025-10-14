@@ -38,13 +38,24 @@ struct PodApp: App {
                 .fixedSize()
                 .preferredColorScheme(getColorScheme())
         }
-        .windowResizability(.contentSize)
+        .applyWindowResizability()
         
         Settings {
             SettingsView()
         }
     }
 }
+
+extension Scene {
+    func applyWindowResizability() -> some Scene {
+        if #available(macOS 13.0, *) {
+            return self.windowResizability(.contentSize)
+        } else {
+            return self
+        }
+    }
+}
+
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!

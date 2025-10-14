@@ -2,26 +2,9 @@ import SwiftUI
 
 struct LicenseActivationView: View {
     @StateObject private var licenseManager = LicenseManager.shared
-    @State private var licenseWords: [String] = Array(repeating: "", count: 5)
-    @State private var showError: Bool = false
+    @State private var licenseKey: String = ""
+    @State private var isActivating: Bool = false
     @AppStorage("app.trial.used") private var hasUsedTrial: Bool = false
-    
-    func handlePaste(_ index: Int, text: String) {
-        // Split pasted text by spaces and clean up
-        let words = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            .components(separatedBy: " ")
-            .prefix(5) // Take only first 5 words
-        
-        // If we have multiple words, populate all fields
-        if words.count > 1 {
-            for (i, word) in words.enumerated() {
-                licenseWords[i] = word
-            }
-        } else {
-            // Single word, just update the current field
-            licenseWords[index] = text
-        }
-    }
     
     var body: some View {
         VStack(spacing: 20) {
@@ -60,29 +43,37 @@ struct LicenseActivationView: View {
             }
             
             VStack(spacing: 16) {
-                Text("Enter your license:")
+                Text("Enter your license key:")
                     .foregroundColor(.secondary)
                 
-                HStack(spacing: 8) {
-                    ForEach(0..<5) { index in
-                        TextField("Secret \(index + 1)", text: $licenseWords[index])
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(width: 100)
-                            .onChange(of: licenseWords[index]) { newValue in
-                                handlePaste(index, text: newValue)
-                            }
+                TextField("License Key", text: $licenseKey)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(maxWidth: 400)
+            }
+            
+            Button(action: {
+                Task {
+                    isActivating = true
+                    
+                    if await !licenseManager.activate(with: licenseKey) {
+                        // Error will be shown through licenseManager.activationError
                     }
+                    
+                    isActivating = false
+                }
+            }) {
+                if isActivating {
+                    ProgressView()
+                        .controlSize(.small)
+                        .scaleEffect(0.8)
+                } else {
+                    Text("Activate")
                 }
             }
+            .disabled(licenseKey.isEmpty || isActivating)
             
-            Button("Activate") {
-                if !licenseManager.activate(with: licenseWords) {
-                    showError = true
-                }
-            }
-            
-            if showError {
-                Text("Invalid license words")
+            if let error = licenseManager.activationError {
+                Text(error)
                     .foregroundColor(.red)
                     .font(.caption)
             }
@@ -101,7 +92,6 @@ struct LicenseActivationView: View {
                 .buttonStyle(.plain)
                 .foregroundColor(.blue)
             }
-      
         }
         .padding()
         .frame(width: 600, height: 300)
@@ -109,5 +99,5 @@ struct LicenseActivationView: View {
 } 
 
 #Preview {
-    LicenseActivationView();
+    LicenseActivationView()
 }

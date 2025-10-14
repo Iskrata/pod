@@ -138,27 +138,43 @@ struct RadioSettings: View {
     @State private var selectedSidebarItem: String? = "search"
     
     var body: some View {
-        NavigationSplitView(columnVisibility: .constant(.all)) {
-            // Sidebar
-            List(selection: $selectedSidebarItem) {
-                NavigationLink(value: "search") {
-                    Label("Search", systemImage: "magnifyingglass")
-                }
-                
-                NavigationLink(value: "favorites") {
-                    Label("Favorites", systemImage: "heart.fill")
-                }
+          if #available(macOS 13.0, *) {
+              NavigationSplitView(columnVisibility: .constant(.all)) {
+                  sidebar
+              } detail: {
+                  detailView
+              }
+          } else {
+              NavigationView {
+                  sidebar
+                  detailView
+              }
+              .frame(minWidth: 300, minHeight: 300)
+          }
+      }
+    
+    private var sidebar: some View {
+        List(selection: $selectedSidebarItem) {
+            NavigationLink(destination: SearchContentView(viewModel: viewModel)) {
+                Label("Search", systemImage: "magnifyingglass")
             }
-            .listStyle(SidebarListStyle())
-            .frame(minWidth: 100, maxWidth: 200)
-        } detail: {
+            
+            NavigationLink(destination: FavoritesContentView(viewModel: viewModel)) {
+                Label("Favorites", systemImage: "heart.fill")
+            }
+        }
+        .listStyle(SidebarListStyle())
+        .frame(minWidth: 100, maxWidth: 200)
+    }
+    
+    private var detailView: some View {
+        Group {
             if selectedSidebarItem == "search" {
                 SearchContentView(viewModel: viewModel)
             } else {
                 FavoritesContentView(viewModel: viewModel)
             }
         }
-        .navigationTitle("Radio Stations")
     }
 }
 
@@ -240,10 +256,24 @@ struct FavoritesContentView: View {
     var body: some View {
         Group {
             if viewModel.favoriteStations.isEmpty {
-                ContentUnavailableView("No Favorites",
-                    systemImage: "heart",
-                    description: Text("Add stations to your favorites while browsing")
-                )
+                if #available(macOS 14.0, *) {
+                    ContentUnavailableView("No Favorites",
+                        systemImage: "heart",
+                        description: Text("Add stations to your favorites while browsing")
+                    )
+                } else {
+                    VStack(spacing: 10) {
+                        Image(systemName: "heart")
+                            .font(.largeTitle)
+                            .foregroundColor(.secondary)
+                        Text("No Favorites")
+                            .font(.title2)
+                            .bold()
+                        Text("Add stations to your favorites while browsing")
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             } else {
                 List(selection: $viewModel.selectedStation) {
                     ForEach(Array(groupedFavorites.keys.sorted()), id: \.self) { country in

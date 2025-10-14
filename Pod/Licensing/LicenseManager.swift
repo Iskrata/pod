@@ -1,6 +1,5 @@
 import Foundation
 import TelemetryDeck
-import CryptoKit
 
 class LicenseManager: ObservableObject {
     static let shared = LicenseManager()
@@ -9,27 +8,72 @@ class LicenseManager: ObservableObject {
     @Published var isTrialActive: Bool = false
     @Published var trialDaysRemaining: Int = 0
     @Published var showLicenseWindow: Bool = false
+    @Published var activationError: String? = nil
     
     private let licenseKey = "app.licensed"
+    private let licenseDataKey = "app.license.data"
     private let trialStartKey = "app.trial.start"
-    private let trialDuration = 7 // days
+    private let trialDuration = 7
     private let hasUsedTrialKey = "app.trial.used"
+    private let apiKey = "creem_1UNFYIw2KuDzgaokaKztpN"
+    private let creemEndpoint = "https://api.creem.io/v1/licenses/activate"
     
-    // Word list for license validation
-    private let validWords = [
-        "apple", "banana", "cherry", "dragon", "elephant",
-        "forest", "guitar", "hammer", "island", "jungle",
-        "kettle", "lemon", "mango", "needle", "orange",
-        "pencil", "quartz", "rabbit", "sunset", "turtle"
-    ]
+    struct CreemLicenseInstance: Codable {
+        let id: String
+        let object: String
+        let name: String
+        let status: String
+        let createdAt: String
+        
+        enum CodingKeys: String, CodingKey {
+            case id, object, name, status
+            case createdAt = "created_at"
+        }
+    }
     
-    private let salt = "Pod2024" // Should be stored securely in production
+    struct CreemLicenseResponse: Codable {
+        let id: String
+        let mode: String
+        let object: String
+        let status: String
+        let key: String
+        let activation: Int
+        let activationLimit: Int
+        let expiresAt: String?
+        let createdAt: String
+        let instance: CreemLicenseInstance
+        
+        enum CodingKeys: String, CodingKey {
+            case id, mode, object, status, key, activation, instance
+            case activationLimit = "activation_limit"
+            case expiresAt = "expires_at"
+            case createdAt = "created_at"
+        }
+    }
+    
+    struct CreemErrorResponse: Codable {
+        let traceId: String
+        let status: Int
+        let error: String
+        let message: String
+        let timestamp: Int64
+        
+        enum CodingKeys: String, CodingKey {
+            case traceId = "trace_id"
+            case status, error, message, timestamp
+        }
+    }
     
     private init() {
-        // Check for license hash instead of boolean
-        self.isLicensed = UserDefaults.standard.string(forKey: licenseKey) != nil
+        // Try to restore license data first
+        if let savedLicenseData = UserDefaults.standard.data(forKey: licenseDataKey),
+           let licenseResponse = try? JSONDecoder().decode(CreemLicenseResponse.self, from: savedLicenseData) {
+            self.isLicensed = licenseResponse.status == "active"
+        } else {
+            self.isLicensed = false
+        }
         
-        // Then handle trial period
+        // Handle trial period
         if let trialStartDate = UserDefaults.standard.object(forKey: trialStartKey) as? Date {
             let daysSinceTrialStart = Calendar.current.dateComponents([.day], from: trialStartDate, to: Date()).day ?? 0
             self.trialDaysRemaining = max(0, trialDuration - daysSinceTrialStart)
@@ -44,7 +88,6 @@ class LicenseManager: ObservableObject {
         let canUse = isLicensed || isTrialActive
         if !canUse && !showLicenseWindow {
             showLicenseWindow = true
-            // Use async to avoid potential UI updates during initialization
             DispatchQueue.main.async {
                 LicenseWindowManager.shared.showLicenseWindow()
             }
@@ -52,39 +95,89 @@ class LicenseManager: ObservableObject {
         return canUse
     }
     
-    func activate(with words: [String]) -> Bool {
-        guard words.count == 5 else { return false }
-        
-        // Convert words to lowercase and join them
-        let normalizedKey = words.map { $0.lowercased() }.joined()
-        
-        // Create a hash of the key with salt
-        let keyData = Data((normalizedKey + salt).utf8)
-        let hash = SHA256.hash(data: keyData)
-        let hashString = hash.compactMap { String(format: "%02x", $0) }.joined()
-        
-        // In production, you would validate this hash against a server
-        // For now, we'll validate against our valid words list
-        let isValid = words.allSatisfy { validWords.contains($0.lowercased()) }
-        
-        if isValid {
-            isLicensed = true
-            UserDefaults.standard.set(hashString, forKey: licenseKey)
-            TelemetryDeck.signal("License.activated")
-            LicenseWindowManager.shared.closeLicenseWindow()
+    func activate(with licenseKey: String) async -> Bool {
+        guard let deviceName = Host.current().localizedName else {
+            activationError = "Could not determine device name"
+            return false
         }
         
-        return isValid
+        let body = [
+            "key": licenseKey,
+            "instance_name": deviceName
+        ]
+        
+        guard let url = URL(string: creemEndpoint) else {
+            activationError = "Invalid API endpoint"
+            return false
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "accept")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: body)
+            request.httpBody = jsonData
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                activationError = "Invalid server response"
+                return false
+            }
+            
+            // Try to decode error response first for any non-200 status
+            if httpResponse.statusCode != 200 {
+                do {
+                    let errorResponse = try JSONDecoder().decode(CreemErrorResponse.self, from: data)
+                    activationError = errorResponse.message.capitalized
+                    return false
+                } catch {
+                    // If we can't decode the error response, use a generic message
+                    activationError = "Invalid license key"
+                    return false
+                }
+            }
+            
+            // Try to decode the success response
+            do {
+                let licenseResponse = try JSONDecoder().decode(CreemLicenseResponse.self, from: data)
+                
+                if licenseResponse.status == "active" {
+                    isLicensed = true
+                    // Store the complete license response
+                    UserDefaults.standard.set(data, forKey: licenseDataKey)
+                    TelemetryDeck.signal("License.activated")
+                    await MainActor.run {
+                        LicenseWindowManager.shared.closeLicenseWindow()
+                    }
+                    activationError = nil
+                    return true
+                }
+                
+                activationError = "License is not active"
+                return false
+            } catch {
+                print("Failed to decode success response: \(error)")
+                activationError = "Invalid license key"
+                return false
+            }
+        } catch {
+            print("Network error: \(error)")
+            activationError = "Failed to connect to license server"
+            return false
+        }
     }
     
     func deactivate() {
         isLicensed = false
-        UserDefaults.standard.removeObject(forKey: licenseKey)
+        UserDefaults.standard.removeObject(forKey: licenseDataKey)
         TelemetryDeck.signal("License.deactivated")
     }
     
     func startTrial() {
-        // Check if trial was already used
         if UserDefaults.standard.bool(forKey: hasUsedTrialKey) {
             return
         }
@@ -104,7 +197,6 @@ class LicenseManager: ObservableObject {
         }
     }
     
-    // For debugging purposes, add this method
     #if DEBUG
     func resetTrialStatus() {
         UserDefaults.standard.removeObject(forKey: trialStartKey)

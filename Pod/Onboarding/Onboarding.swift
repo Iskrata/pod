@@ -64,7 +64,7 @@ struct OnboardingScreen: View {
                 VStack (alignment: .leading, spacing: 2) {
                     Text(screen.heading ?? "")
                         .foregroundStyle(.black)
-                        .bold()
+                        .font(.system(size: 18, weight: .bold, design: .default))
                     
                     Text(screen.description ?? "")
                         .foregroundStyle(.black)

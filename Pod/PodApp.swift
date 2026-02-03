@@ -8,6 +8,7 @@
 import Cocoa
 import SwiftUI
 import TelemetryDeck
+import Sparkle
 
 @main
 struct PodApp: App {
@@ -36,6 +37,11 @@ struct PodApp: App {
       ContentView()
         .fixedSize()
         .preferredColorScheme(getColorScheme())
+        .onOpenURL { url in
+          if url.scheme == "pod" && url.host == "callback" {
+            SpotifyService.shared.handleCallback(url: url)
+          }
+        }
     }
     .applyWindowResizability()
 
@@ -57,10 +63,15 @@ extension Scene {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
   var window: NSWindow!
+  private var updaterController: SPUStandardUpdaterController!
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     configureWindow()
-    checkForUpdatesIfNeeded()
+    updaterController = SPUStandardUpdaterController(
+      startingUpdater: true,
+      updaterDelegate: nil,
+      userDriverDelegate: nil
+    )
   }
 
   private func configureWindow() {
@@ -72,11 +83,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
-  private func checkForUpdatesIfNeeded() {
-    #if DEBUG
-      //        print("App is running in Debug mode")
-    #else
-      UpdateChecker.shared.checkForUpdates()
-    #endif
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    true
   }
 }

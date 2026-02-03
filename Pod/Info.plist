@@ -2,10 +2,27 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.pod.spotify-callback</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>pod</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/Iskrata/pod-public/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>j4eBuuf69Nxzkx0XmDXnCNtX+F4aWFwFe5DhI3462z0=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
 </dict>
 </plist>

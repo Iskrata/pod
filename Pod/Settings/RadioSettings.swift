@@ -1,239 +1,218 @@
+//
+//  RadioSettings.swift
+//  Pod
+//
+
 import SwiftUI
-import AVFoundation
 import Combine
+
+// MARK: - Model
 
 struct RadioStation: Codable, Identifiable, Hashable {
     let id: String
     let name: String
     let url: String
     let country: String
-    
+
     enum CodingKeys: String, CodingKey {
         case id = "stationuuid"
-        case name
-        case url
-        case country
+        case name, url, country
     }
 }
 
+// MARK: - ViewModel
+
 class RadioSettingsViewModel: ObservableObject {
-    @Published var searchText: String = ""
+    @Published var searchText = ""
     @Published var searchResults: [RadioStation] = []
     @Published var favoriteStations: [RadioStation] = []
-    @Published var isSearching: Bool = false
+    @Published var isSearching = false
     @Published var errorMessage: String?
-    @Published var selectedStation: RadioStation?
     @Published var suggestedStations: [RadioStation] = []
-    
-    private var searchTask: Task<Void, Never>?
+
     private var cancellables = Set<AnyCancellable>()
-    
-    private let baseURL = "https://de1.api.radio-browser.info/json/stations/search"
-    
+    private let baseURL = "https://de1.api.radio-browser.info/json/stations"
+
     init() {
         loadFavorites()
         loadSuggestedStations()
-        
-        // Set up search text observation
+        setupSearch()
+    }
+
+    private func setupSearch() {
         $searchText
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] text in
-                if !text.isEmpty {
-                    self?.searchStations()
-                } else {
-                    self?.searchResults = []
-                }
+                text.isEmpty ? (self?.searchResults = []) : self?.searchStations()
             }
             .store(in: &cancellables)
     }
-    
+
     func searchStations() {
-        guard !searchText.isEmpty else {
-            searchResults = []
-            return
-        }
-        
+        guard !searchText.isEmpty else { return }
         isSearching = true
         errorMessage = nil
-        
-        let queryItems = [URLQueryItem(name: "name", value: searchText)]
-        var urlComps = URLComponents(string: baseURL)!
-        urlComps.queryItems = queryItems
-        
-        guard let url = urlComps.url else {
-            errorMessage = "Invalid search query"
+
+        var components = URLComponents(string: "\(baseURL)/search")!
+        components.queryItems = [URLQueryItem(name: "name", value: searchText)]
+
+        guard let url = components.url else {
+            errorMessage = "Invalid search"
             isSearching = false
             return
         }
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+
+        fetchStations(from: url) { [weak self] stations in
+            self?.searchResults = stations ?? []
+            self?.isSearching = false
+        }
+    }
+
+    func loadSuggestedStations() {
+        guard let url = URL(string: "\(baseURL)/topclick/10") else { return }
+        fetchStations(from: url) { [weak self] stations in
+            self?.suggestedStations = stations ?? []
+        }
+    }
+
+    private func fetchStations(from url: URL, completion: @escaping ([RadioStation]?) -> Void) {
+        URLSession.shared.dataTask(with: url) { data, _, error in
             DispatchQueue.main.async {
-                self?.isSearching = false
-                
-                if let error = error {
-                    self?.errorMessage = error.localizedDescription
-                    return
-                }
-                
-                guard let data = data else {
-                    self?.errorMessage = "No data received"
-                    return
-                }
-                
-                do {
-                    let stations = try JSONDecoder().decode([RadioStation].self, from: data)
-                    self?.searchResults = stations
-                } catch {
-                    self?.errorMessage = "Failed to decode stations"
-                }
+                if error != nil { completion(nil); return }
+                guard let data = data,
+                      let stations = try? JSONDecoder().decode([RadioStation].self, from: data)
+                else { completion(nil); return }
+                completion(stations)
             }
         }.resume()
     }
-    
+
     func toggleFavorite(_ station: RadioStation) {
-        if favoriteStations.contains(station) {
+        if favoriteStations.contains(where: { $0.id == station.id }) {
             favoriteStations.removeAll { $0.id == station.id }
         } else {
             favoriteStations.append(station)
         }
         saveFavorites()
     }
-    
+
     func isFavorite(_ station: RadioStation) -> Bool {
-        favoriteStations.contains(station)
+        favoriteStations.contains { $0.id == station.id }
     }
-    
+
     private func saveFavorites() {
-        if let encoded = try? JSONEncoder().encode(favoriteStations) {
-            UserDefaults.standard.set(encoded, forKey: "favoriteStations")
-            
-            // Notify AlbumViewModel to reload favorites
-            NotificationCenter.default.post(name: NSNotification.Name("FavoriteStationsChanged"), object: nil)
-        }
+        guard let data = try? JSONEncoder().encode(favoriteStations) else { return }
+        UserDefaults.standard.set(data, forKey: "favoriteStations")
+        NotificationCenter.default.post(name: NSNotification.Name("FavoriteStationsChanged"), object: nil)
     }
-    
+
     private func loadFavorites() {
-        if let data = UserDefaults.standard.data(forKey: "favoriteStations"),
-           let decoded = try? JSONDecoder().decode([RadioStation].self, from: data) {
-            self.favoriteStations = decoded
-        }
-    }
-    
-    func loadSuggestedStations() {
-        let url = URL(string: "https://de1.api.radio-browser.info/json/stations/topclick/10")!
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            DispatchQueue.main.async {
-                if let data = data,
-                   let stations = try? JSONDecoder().decode([RadioStation].self, from: data) {
-                    self?.suggestedStations = stations
-                }
-            }
-        }.resume()
+        guard let data = UserDefaults.standard.data(forKey: "favoriteStations"),
+              let stations = try? JSONDecoder().decode([RadioStation].self, from: data)
+        else { return }
+        favoriteStations = stations
     }
 }
+
+// MARK: - Main View
 
 struct RadioSettings: View {
     @StateObject private var viewModel = RadioSettingsViewModel()
-    @State private var selectedSidebarItem: String? = "search"
-    
+    @State private var selectedSection = "search"
+
     var body: some View {
-          if #available(macOS 13.0, *) {
-              NavigationSplitView(columnVisibility: .constant(.all)) {
-                  sidebar
-              } detail: {
-                  detailView
-              }
-          } else {
-              NavigationView {
-                  sidebar
-                  detailView
-              }
-              .frame(minWidth: 300, minHeight: 300)
-          }
-      }
-    
-    private var sidebar: some View {
-        List(selection: $selectedSidebarItem) {
-            NavigationLink(destination: SearchContentView(viewModel: viewModel)) {
-                Label("Search", systemImage: "magnifyingglass")
+        HSplitView {
+            VStack(alignment: .leading, spacing: 0) {
+                SidebarButton(title: "Search", icon: "magnifyingglass", isSelected: selectedSection == "search") {
+                    selectedSection = "search"
+                }
+                SidebarButton(title: "Favorites", icon: "heart.fill", isSelected: selectedSection == "favorites") {
+                    selectedSection = "favorites"
+                }
+                Spacer()
             }
-            
-            NavigationLink(destination: FavoritesContentView(viewModel: viewModel)) {
-                Label("Favorites", systemImage: "heart.fill")
+            .frame(minWidth: 140, maxWidth: 180)
+            .background(Color(NSColor.controlBackgroundColor))
+
+            Group {
+                switch selectedSection {
+                case "favorites":
+                    RadioFavoritesView(viewModel: viewModel)
+                default:
+                    RadioSearchView(viewModel: viewModel)
+                }
             }
-        }
-        .listStyle(SidebarListStyle())
-        .frame(minWidth: 100, maxWidth: 200)
-    }
-    
-    private var detailView: some View {
-        Group {
-            if selectedSidebarItem == "search" {
-                SearchContentView(viewModel: viewModel)
-            } else {
-                FavoritesContentView(viewModel: viewModel)
-            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }
 
-struct SearchContentView: View {
+// MARK: - Search View
+
+struct RadioSearchView: View {
     @ObservedObject var viewModel: RadioSettingsViewModel
-    
+
     var body: some View {
-        VStack {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                TextField("Search radio stations", text: $viewModel.searchText)
-                    .textFieldStyle(.plain)
-            }
-            .padding(8)
-            .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(6)
-            .padding()
-            
-            // Results or Suggestions
+        VStack(spacing: 0) {
+            SettingsSearchField(text: $viewModel.searchText, placeholder: "Search radio stations")
+                .padding(16)
+
+            Divider()
+
             if viewModel.isSearching {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                SettingsEmptyState(icon: "arrow.clockwise", title: "Searching...", description: "")
             } else if let error = viewModel.errorMessage {
-                Text(error)
-                    .foregroundColor(.red)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                SettingsEmptyState(icon: "exclamationmark.triangle", title: "Error", description: error)
             } else if !viewModel.searchText.isEmpty {
-                StationsList(stations: viewModel.searchResults, viewModel: viewModel)
+                RadioStationsList(stations: viewModel.searchResults, viewModel: viewModel)
             } else {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text("Popular Stations")
                         .font(.headline)
-                        .padding(.horizontal)
-                    
-                    StationsList(stations: viewModel.suggestedStations, viewModel: viewModel)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                    RadioStationsList(stations: viewModel.suggestedStations, viewModel: viewModel)
                 }
             }
         }
     }
 }
 
-struct StationsList: View {
+// MARK: - Favorites View
+
+struct RadioFavoritesView: View {
+    @ObservedObject var viewModel: RadioSettingsViewModel
+
+    var body: some View {
+        if viewModel.favoriteStations.isEmpty {
+            SettingsEmptyState(
+                icon: "heart",
+                title: "No Favorites",
+                description: "Add stations to favorites while browsing"
+            )
+        } else {
+            RadioStationsList(stations: viewModel.favoriteStations, viewModel: viewModel)
+        }
+    }
+}
+
+// MARK: - Stations List
+
+struct RadioStationsList: View {
     let stations: [RadioStation]
     @ObservedObject var viewModel: RadioSettingsViewModel
-    
-    var groupedStations: [String: [RadioStation]] {
+
+    private var grouped: [(country: String, stations: [RadioStation])] {
         Dictionary(grouping: stations) { $0.country }
-            .sorted(by: { $0.key < $1.key })
-            .reduce(into: [:]) { result, element in
-                result[element.key] = element.value.sorted(by: { $0.name < $1.name })
-            }
+            .map { (country: $0.key, stations: $0.value.sorted { $0.name < $1.name }) }
+            .sorted { $0.country < $1.country }
     }
-    
+
     var body: some View {
-        List(selection: $viewModel.selectedStation) {
-            ForEach(Array(groupedStations.keys.sorted()), id: \.self) { country in
-                Section(header: Text(country)) {
-                    ForEach(groupedStations[country] ?? [], id: \.self) { station in
+        List {
+            ForEach(grouped, id: \.country) { group in
+                Section(header: Text(group.country)) {
+                    ForEach(group.stations) { station in
                         RadioStationRow(station: station, viewModel: viewModel)
                     }
                 }
@@ -242,78 +221,34 @@ struct StationsList: View {
     }
 }
 
-struct FavoritesContentView: View {
-    @ObservedObject var viewModel: RadioSettingsViewModel
-    
-    var groupedFavorites: [String: [RadioStation]] {
-        Dictionary(grouping: viewModel.favoriteStations) { $0.country }
-            .sorted(by: { $0.key < $1.key })
-            .reduce(into: [:]) { result, element in
-                result[element.key] = element.value.sorted(by: { $0.name < $1.name })
-            }
-    }
-    
-    var body: some View {
-        Group {
-            if viewModel.favoriteStations.isEmpty {
-                if #available(macOS 14.0, *) {
-                    ContentUnavailableView("No Favorites",
-                        systemImage: "heart",
-                        description: Text("Add stations to your favorites while browsing")
-                    )
-                } else {
-                    VStack(spacing: 10) {
-                        Image(systemName: "heart")
-                            .font(.largeTitle)
-                            .foregroundColor(.secondary)
-                        Text("No Favorites")
-                            .font(.title2)
-                            .bold()
-                        Text("Add stations to your favorites while browsing")
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            } else {
-                List(selection: $viewModel.selectedStation) {
-                    ForEach(Array(groupedFavorites.keys.sorted()), id: \.self) { country in
-                        Section(header: Text(country)) {
-                            ForEach(groupedFavorites[country] ?? [], id: \.self) { station in
-                                RadioStationRow(station: station, viewModel: viewModel)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+// MARK: - Station Row
 
 struct RadioStationRow: View {
     let station: RadioStation
     @ObservedObject var viewModel: RadioSettingsViewModel
-    
+
+    private var isFavorite: Bool { viewModel.isFavorite(station) }
+
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(station.name)
                     .font(.headline)
+                    .lineLimit(1)
                 Text(station.country)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
-            Button(action: {
-                viewModel.toggleFavorite(station)
-            }) {
-                Image(systemName: viewModel.isFavorite(station) ? "heart.fill" : "heart")
-                    .foregroundColor(viewModel.isFavorite(station) ? .red : .secondary)
+
+            Button(action: { viewModel.toggleFavorite(station) }) {
+                Image(systemName: isFavorite ? "heart.fill" : "heart")
+                    .font(.title3)
+                    .foregroundColor(isFavorite ? .red : .secondary)
             }
             .buttonStyle(.plain)
         }
         .padding(.vertical, 4)
     }
 }
-

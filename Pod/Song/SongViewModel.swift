@@ -33,10 +33,95 @@ class SongViewModel: ProtocolView {
     var isRadioStation = false
     var currentRadioName = ""
     var streamPlayer: AVPlayer?
+
+    // Spotify
+    @Published var isSpotifyPlayback = false
+    @Published var spotifyTracks: [SpotifyTrack] = []
+    @Published var currentSpotifyTrackIndex: Int = 0
+    @Published var currentSpotifyPlaylistId: String = ""
+    @Published var currentSpotifyPlaylistName: String = ""
+    @Published var currentSpotifyImageUrl: String?
     
-    init()
-    {
+    init() {
         self.setupRemoteCommandCenter()
+        setupSpotifyObserver()
+    }
+
+    private func setupSpotifyObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(spotifyStateChanged),
+            name: NSNotification.Name("SpotifyStateChanged"),
+            object: nil
+        )
+    }
+
+    @objc private func spotifyStateChanged(_ notification: Notification) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, self.isSpotifyPlayback else { return }
+            let service = SpotifyService.shared
+            let wasPlaying = self.isPlaying
+            let spotifyTime = service.currentTrackPosition
+            let spotifyDuration = service.currentTrackDuration
+
+            self.isPlaying = service.isPlaying
+            self.duration = spotifyDuration
+
+            // Sync time from Spotify
+            if abs(self.currentTime - spotifyTime) > 2.0 {
+                self.currentTime = spotifyTime
+            }
+
+            // Manage timer based on play state
+            if service.isPlaying && !wasPlaying {
+                self.startSpotifyTimer()
+            } else if !service.isPlaying && wasPlaying {
+                self.stopSpotifyTimer()
+            }
+
+            // Handle track changes from Spotify (e.g., auto-advance)
+            if let userInfo = notification.userInfo,
+               let trackChanged = userInfo["trackChanged"] as? Bool,
+               trackChanged,
+               let currentTrackId = service.currentTrackId {
+                // Find the track in our list and update index
+                if let index = self.spotifyTracks.firstIndex(where: { $0.id == currentTrackId }) {
+                    self.currentSpotifyTrackIndex = index
+                }
+            }
+
+            // Auto-advance when track ends
+            // Spotify resets position to 0 when track finishes, so check if we were near end
+            let trackEnded = wasPlaying && !service.isPlaying && spotifyDuration > 0 && (
+                spotifyTime >= spotifyDuration - 1.0 ||
+                (spotifyTime == 0 && self.lastSpotifyPosition >= spotifyDuration - 2.0)
+            )
+            if trackEnded {
+                self.nextClick()
+            }
+
+            self.lastSpotifyPosition = spotifyTime
+
+            self.updateNowPlayingInfo()
+        }
+    }
+
+    private var spotifyTimer: Timer?
+    private var lastSpotifyPosition: TimeInterval = 0
+
+    private func startSpotifyTimer() {
+        spotifyTimer?.invalidate()
+        spotifyTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self, self.isSpotifyPlayback, self.isPlaying else { return }
+            self.currentTime += 1.0
+            if self.currentTime > self.duration { self.currentTime = self.duration }
+            self.updateNowPlayingInfo()
+        }
+    }
+
+    private func stopSpotifyTimer() {
+        spotifyTimer?.invalidate()
+        spotifyTimer = nil
     }
     
     func loadAudioFile(_ path: String) {
@@ -91,18 +176,137 @@ class SongViewModel: ProtocolView {
         updateNowPlayingInfo()
         TelemetryDeck.signal("Radio.play", parameters: ["stationName": name])
     }
-    
+
+    func playSpotifyPlaylist(playlistId: String, playlistName: String, imageUrl: String?) {
+        stopAllPlayback()
+
+        isSpotifyPlayback = true
+        currentSpotifyPlaylistId = playlistId
+        currentSpotifyPlaylistName = playlistName
+        currentSpotifyImageUrl = imageUrl
+        currentSpotifyTrackIndex = 0
+
+        GlobalState.shared.activeView = .song
+
+        Task {
+            let tracks = await SpotifyService.shared.fetchPlaylistTracks(playlistId: playlistId)
+            await MainActor.run {
+                self.spotifyTracks = tracks
+                if !tracks.isEmpty {
+                    self.waitForPlayerAndPlay(trackIndex: 0)
+                }
+            }
+        }
+
+        TelemetryDeck.signal("Spotify.play", parameters: ["playlistName": playlistName])
+    }
+
+    func playSpotifyAlbum(albumId: String, albumUri: String, albumName: String, imageUrl: String?) {
+        stopAllPlayback()
+
+        isSpotifyPlayback = true
+        currentSpotifyPlaylistId = albumId
+        currentSpotifyPlaylistName = albumName
+        currentSpotifyImageUrl = imageUrl
+        currentSpotifyTrackIndex = 0
+
+        GlobalState.shared.activeView = .song
+
+        Task {
+            let tracks = await SpotifyService.shared.fetchAlbumTracks(albumId: albumId)
+            await MainActor.run {
+                // Set album image on all tracks since album tracks don't have it
+                self.spotifyTracks = tracks.map { track in
+                    SpotifyTrack(
+                        id: track.id,
+                        uri: track.uri,
+                        name: track.name,
+                        artist: track.artist,
+                        album: albumName,
+                        albumImageUrl: imageUrl,
+                        durationMs: track.durationMs
+                    )
+                }
+                if !self.spotifyTracks.isEmpty {
+                    self.waitForPlayerAndPlay(trackIndex: 0)
+                }
+            }
+        }
+
+        TelemetryDeck.signal("Spotify.playAlbum", parameters: ["albumName": albumName])
+    }
+
+    private func waitForPlayerAndPlay(trackIndex: Int) {
+        if SpotifyService.shared.isPlayerReady {
+            playSpotifyTrack(at: trackIndex)
+        } else {
+            // Wait for player ready and then play
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.waitForPlayerAndPlay(trackIndex: trackIndex)
+            }
+        }
+    }
+
+    func playSpotifyTrack(at index: Int) {
+        guard index >= 0 && index < spotifyTracks.count else { return }
+        currentSpotifyTrackIndex = index
+        let track = spotifyTracks[index]
+        SpotifyService.shared.play(uri: track.uri)
+        isPlaying = true
+        duration = TimeInterval(track.durationMs) / 1000
+        currentTime = 0
+        lastSpotifyPosition = 0
+        startSpotifyTimer()
+        updateNowPlayingInfo()
+    }
+
+    private func stopAllPlayback() {
+        audioPlayer?.stop()
+        audioPlayer = nil
+        streamPlayer?.pause()
+        streamPlayer = nil
+        isRadioStation = false
+        isSpotifyPlayback = false
+        isPlaying = false
+        stopTimer()
+        stopSpotifyTimer()
+    }
+
+    var currentSpotifyTrack: SpotifyTrack? {
+        guard isSpotifyPlayback && currentSpotifyTrackIndex < spotifyTracks.count else { return nil }
+        return spotifyTracks[currentSpotifyTrackIndex]
+    }
+
+    private var cachedSpotifyArtwork: (url: String, artwork: MPMediaItemArtwork)?
+
     func updateNowPlayingInfo() {
         var nowPlayingInfo = [String: Any]()
-        
-        if isRadioStation {
+
+        if isSpotifyPlayback {
+            if let track = currentSpotifyTrack {
+                nowPlayingInfo[MPMediaItemPropertyTitle] = track.name
+                nowPlayingInfo[MPMediaItemPropertyArtist] = track.artist
+                nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = track.album
+                nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = duration
+                nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
+                nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
+
+                // Set album artwork
+                if let imageUrl = track.albumImageUrl ?? currentSpotifyImageUrl {
+                    if let cached = cachedSpotifyArtwork, cached.url == imageUrl {
+                        nowPlayingInfo[MPMediaItemPropertyArtwork] = cached.artwork
+                    } else {
+                        loadSpotifyArtwork(from: imageUrl)
+                    }
+                }
+            }
+        } else if isRadioStation {
             nowPlayingInfo[MPMediaItemPropertyTitle] = currentRadioName
             nowPlayingInfo[MPMediaItemPropertyArtist] = "Live Radio"
             nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = 0.0
             nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0.0
             nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
-            
-            // Add a radio icon for radio stations
+
             if let radioIcon = NSImage(systemSymbolName: "radio", accessibilityDescription: nil) {
                 let artwork = MPMediaItemArtwork(boundsSize: radioIcon.size) { size in
                     radioIcon
@@ -115,7 +319,7 @@ class SongViewModel: ProtocolView {
             nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = audioPlayer?.duration ?? 0.0
             nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = audioPlayer?.currentTime ?? 0.0
             nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = (audioPlayer?.isPlaying ?? false) ? 1.0 : 0.0
-            
+
             if let songImage = songs[currentSong].coverImage {
                 let albumArt = MPMediaItemArtwork(boundsSize: songImage.size) { size in
                     songImage
@@ -123,10 +327,26 @@ class SongViewModel: ProtocolView {
                 nowPlayingInfo[MPMediaItemPropertyArtwork] = albumArt
             }
         }
-        
+
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
-    
+
+    private func loadSpotifyArtwork(from urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            guard let self = self,
+                  let data = data,
+                  let image = NSImage(data: data) else { return }
+
+            DispatchQueue.main.async {
+                let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                self.cachedSpotifyArtwork = (urlString, artwork)
+                self.updateNowPlayingInfo()
+            }
+        }.resume()
+    }
+
     func setupRemoteCommandCenter() {
         let commandCenter = MPRemoteCommandCenter.shared()
         
@@ -208,20 +428,48 @@ class SongViewModel: ProtocolView {
     }
     
     func nextClick() {
+        if isSpotifyPlayback {
+            currentSpotifyTrackIndex = (currentSpotifyTrackIndex + 1) % spotifyTracks.count
+            playSpotifyTrack(at: currentSpotifyTrackIndex)
+            return
+        }
+        if isRadioStation { return }
         currentSong = (currentSong + 1) % songs.count
         self.loadAudioFile(songs[currentSong].pathToAudioFile)
         self.playPauseClick()
     }
-    
+
     func prevClick() {
+        if isSpotifyPlayback {
+            currentSpotifyTrackIndex = (currentSpotifyTrackIndex - 1 + spotifyTracks.count) % spotifyTracks.count
+            playSpotifyTrack(at: currentSpotifyTrackIndex)
+            return
+        }
+        if isRadioStation { return }
         currentSong = (currentSong - 1 + songs.count) % songs.count
         self.loadAudioFile(songs[currentSong].pathToAudioFile)
         self.playPauseClick()
     }
-    
+
     func playPauseClick() {
+        if isSpotifyPlayback {
+            SpotifyService.shared.togglePlayPause()
+            return
+        }
+        if isRadioStation {
+            if isPlaying {
+                streamPlayer?.pause()
+                isPlaying = false
+                MPNowPlayingInfoCenter.default().playbackState = .paused
+            } else {
+                streamPlayer?.play()
+                isPlaying = true
+                MPNowPlayingInfoCenter.default().playbackState = .playing
+            }
+            return
+        }
         guard let player = audioPlayer else { return }
-        
+
         if player.isPlaying {
             player.pause()
             isPlaying = false
@@ -233,7 +481,7 @@ class SongViewModel: ProtocolView {
             startTimer()
             MPNowPlayingInfoCenter.default().playbackState = .playing
         }
-        
+
         updateNowPlayingInfo()
     }
     
@@ -243,52 +491,58 @@ class SongViewModel: ProtocolView {
     }
     
     func wheelUp() {
+        if isSpotifyPlayback {
+            let newPos = max(0, currentTime - 5)
+            SpotifyService.shared.seek(positionMs: Int(newPos * 1000))
+            currentTime = newPos
+            hapticManager.perform(.levelChange, performanceTime: .default)
+            return
+        }
+        if isRadioStation { return }
         guard let player = audioPlayer else { return }
-        
-        if (self.currentTime > 0.0) {
+
+        if currentTime > 0.0 {
             player.currentTime -= 5
-            self.currentTime -= 5
-            
-            if (self.currentTime < 0) {
-                self.currentTime = 0
-            }
-            self.hapticManager.perform(.levelChange, performanceTime: .default)
+            currentTime -= 5
+            if currentTime < 0 { currentTime = 0 }
+            hapticManager.perform(.levelChange, performanceTime: .default)
         }
-        
     }
-    
+
     func wheelDown() {
+        if isSpotifyPlayback {
+            let newPos = min(duration, currentTime + 5)
+            SpotifyService.shared.seek(positionMs: Int(newPos * 1000))
+            currentTime = newPos
+            hapticManager.perform(.levelChange, performanceTime: .default)
+            return
+        }
+        if isRadioStation { return }
         guard let player = audioPlayer else { return }
-        if (self.currentTime < self.duration) {
+
+        if currentTime < duration {
             player.currentTime += 5
-            self.currentTime += 5
-            
-            if (self.currentTime > self.duration)
-            {
-                self.currentTime = self.duration
-            }
-            self.hapticManager.perform(.levelChange, performanceTime: .default)
+            currentTime += 5
+            if currentTime > duration { currentTime = duration }
+            hapticManager.perform(.levelChange, performanceTime: .default)
         }
-        
     }
-    
+
     func menuClick() {
-        // Clean up when going back to album view
-        if isRadioStation {
-            streamPlayer?.pause()
-            streamPlayer = nil
-        } else {
-            audioPlayer?.stop()
-            audioPlayer = nil
+        if isSpotifyPlayback && SpotifyService.shared.isPlaying {
+            SpotifyService.shared.togglePlayPause()
         }
-        isPlaying = false
-        isRadioStation = false
+        stopAllPlayback()
         currentRadioName = ""
+        currentSpotifyPlaylistId = ""
+        currentSpotifyPlaylistName = ""
+        spotifyTracks = []
         GlobalState.shared.activeView = .albums
     }
     
     deinit {
         stopTimer()
+        stopSpotifyTimer()
         streamPlayer?.pause()
         streamPlayer = nil
         audioPlayer?.stop()

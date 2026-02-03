@@ -2,54 +2,39 @@
 //  SettingsView.swift
 //  Pod
 //
-//  Created by Iskren Alexandrov on 10.07.24.
-//
 
 import SwiftUI
 
 struct SettingsView: View {
     @State private var selectedTab = "General"
-    
+
     var body: some View {
         TabView(selection: $selectedTab) {
-            ScrollView {
-                GeneralSettings()
-                    .padding()
-            }
-            .tag("General")
-            .tabItem {
-                Label("General", systemImage: "gearshape.fill")
-            }
-            
+            GeneralSettings()
+                .tag("General")
+                .tabItem { Label("General", systemImage: "gearshape.fill") }
+
             RadioSettings()
-            .tag("Radio")
-            .tabItem {
-                Label("Radio", systemImage: "radio")
-            }
-            
-            ScrollView {
-                ContactUs()
-                    .padding()
-            }
-            .tag("Help")
-            .tabItem { 
-                Label("Help", systemImage: "questionmark.circle")
-            }
+                .tag("Radio")
+                .tabItem { Label("Radio", systemImage: "radio") }
+
+            SpotifySettings()
+                .tag("Spotify")
+                .tabItem { Label("Spotify", systemImage: "music.note") }
+
+            ContactUs()
+                .tag("Help")
+                .tabItem { Label("Help", systemImage: "questionmark.circle") }
         }
-        .frame(width: 500)
+        .frame(width: 600, height: 450)
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenSpotifySettings"))) { _ in
+            selectedTab = "Spotify"
+        }
     }
-    
 }
 
 extension UserDefaults {
     func reset() {
-        let dictionary = self.dictionaryRepresentation()
-        dictionary.keys.forEach { key in
-            self.removeObject(forKey: key)
-        }
+        dictionaryRepresentation().keys.forEach { removeObject(forKey: $0) }
     }
-}
-
-#Preview {
-    SettingsView()
 }

@@ -18,36 +18,60 @@ struct SongView: View {
             
             HStack(spacing: 20) {
                 VStack {
-                    if viewModel.isRadioStation {
+                    if viewModel.isSpotifyPlayback {
+                        AsyncSpotifyImage(
+                            imageUrl: viewModel.currentSpotifyTrack?.albumImageUrl ?? viewModel.currentSpotifyImageUrl ?? "",
+                            size: 100
+                        )
+                        .modifier(PerspectiveTransformEffect())
+                    } else if viewModel.isRadioStation {
                         RadioStationView(size: 100)
                             .modifier(PerspectiveTransformEffect())
-                    } else if let coverImage = viewModel.songs[viewModel.currentSong].coverImage {
+                    } else if !viewModel.songs.isEmpty,
+                              let coverImage = viewModel.songs[viewModel.currentSong].coverImage {
                         Image(nsImage: coverImage)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .modifier(PerspectiveTransformEffect())
                     } else {
                         Rectangle()
+                            .fill(Color.gray.opacity(0.3))
                             .aspectRatio(contentMode: .fit)
                     }
                 }
-                
-                if viewModel.isRadioStation {
+
+                if viewModel.isSpotifyPlayback {
+                    if let track = viewModel.currentSpotifyTrack {
+                        SongInfo(
+                            title: track.name,
+                            artist: track.artist,
+                            album: track.album
+                        )
+                    } else {
+                        SongInfo(
+                            title: viewModel.currentSpotifyPlaylistName,
+                            artist: "Spotify",
+                            album: nil
+                        )
+                    }
+                } else if viewModel.isRadioStation {
                     SongInfo(
                         title: viewModel.currentRadioName,
                         artist: "Live Radio",
                         album: nil
                     )
-                } else {
+                } else if !viewModel.songs.isEmpty {
                     SongInfo(
                         title: viewModel.getCurrentSongTitle(),
                         artist: viewModel.getCurrentSongArtist(),
                         album: viewModel.getCurrentSongAlbum()
                     )
+                } else {
+                    SongInfo(title: "No song", artist: nil, album: nil)
                 }
                 Spacer()
             }.padding()
-            
+
             if !viewModel.isRadioStation {
                 SongProgress(
                     currentTime: viewModel.formattedCurrentTime,
@@ -55,13 +79,15 @@ struct SongView: View {
                     viewModel: viewModel
                 )
             }
-        }.onAppear(perform: {
-            if !viewModel.isRadioStation {
+        }.onAppear {
+            if !viewModel.isRadioStation && !viewModel.isSpotifyPlayback {
                 viewModel.songs = loadAudioFiles(from: settings.selectedAlbumDir)
-                viewModel.loadAudioFile(viewModel.songs[viewModel.currentSong].pathToAudioFile)
-                viewModel.playPauseClick()
+                if !viewModel.songs.isEmpty {
+                    viewModel.loadAudioFile(viewModel.songs[viewModel.currentSong].pathToAudioFile)
+                    viewModel.playPauseClick()
+                }
             }
-        })
+        }
     }
 }
 
@@ -144,25 +170,43 @@ struct SongInfo: View {
 
 struct MenuBar: View {
     var isPlaying: Bool
-    
+    @StateObject private var battery = BatteryMonitor.shared
+
+    private var batteryIcon: String {
+        if battery.isCharging {
+            return "battery.100percent.bolt"
+        }
+        switch battery.batteryLevel {
+        case 0..<10: return "battery.0percent"
+        case 10..<35: return "battery.25percent"
+        case 35..<60: return "battery.50percent"
+        case 60..<85: return "battery.75percent"
+        default: return "battery.100percent"
+        }
+    }
+
+    private var batteryColor: Color {
+        if battery.isCharging { return .green }
+        if battery.batteryLevel < 20 { return .red }
+        return .green
+    }
+
     var body: some View {
         HStack {
             Text("Now Playing")
                 .foregroundColor(.black)
-                .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-            
+                .fontWeight(.bold)
+
             Spacer()
-            Image(systemName:
-                    isPlaying ? "pause.fill" : "play.fill")
-            .foregroundColor(.blue)
-            Image(systemName: "battery.100percent")
-                .foregroundColor(.green)
-            
+            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                .foregroundColor(.blue)
+            Image(systemName: batteryIcon)
+                .foregroundColor(batteryColor)
         }
         .padding(7)
         .background(.menuBarGray)
-        .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/, width: 1)
-        .shadow(radius: /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
+        .border(Color.black, width: 1)
+        .shadow(radius: 10)
     }
 }
 

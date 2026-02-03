@@ -32,6 +32,8 @@ struct DiagonalBackgroundView: View {
 
 struct ContentView: View {
   @AppStorage("fontSize") var fontSize = 13.0
+  @AppStorage("hasShownSpotifyAlert") var hasShownSpotifyAlert = false
+  @State private var showSpotifyAlert = false
 
   @StateObject private var globalState = GlobalState.shared
 
@@ -65,7 +67,80 @@ struct ContentView: View {
         ClickWheel(views: views)
       }
       .padding()
-    }.background(DiagonalBackgroundView())
+    }
+    .background(DiagonalBackgroundView())
+    .onAppear {
+      if !hasShownSpotifyAlert && globalState.activeView != .onboarding {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+          showSpotifyAlert = true
+        }
+      }
+    }
+    .modifier(SpotifyAlertModifier(
+      isPresented: $showSpotifyAlert,
+      hasShownSpotifyAlert: $hasShownSpotifyAlert
+    ))
+  }
+}
+
+struct SpotifyAlertModifier: ViewModifier {
+  @Binding var isPresented: Bool
+  @Binding var hasShownSpotifyAlert: Bool
+
+  func body(content: Content) -> some View {
+    if #available(macOS 14.0, *) {
+      content.modifier(SpotifyAlertModifier14(
+        isPresented: $isPresented,
+        hasShownSpotifyAlert: $hasShownSpotifyAlert
+      ))
+    } else {
+      content.modifier(SpotifyAlertModifierLegacy(
+        isPresented: $isPresented,
+        hasShownSpotifyAlert: $hasShownSpotifyAlert
+      ))
+    }
+  }
+}
+
+@available(macOS 14.0, *)
+struct SpotifyAlertModifier14: ViewModifier {
+  @Binding var isPresented: Bool
+  @Binding var hasShownSpotifyAlert: Bool
+  @Environment(\.openSettings) private var openSettings
+
+  func body(content: Content) -> some View {
+    content.alert("Spotify Integration", isPresented: $isPresented) {
+      Button("Open Settings") {
+        hasShownSpotifyAlert = true
+        openSettings()
+        NotificationCenter.default.post(name: NSNotification.Name("OpenSpotifySettings"), object: nil)
+      }
+      Button("Maybe Later", role: .cancel) {
+        hasShownSpotifyAlert = true
+      }
+    } message: {
+      Text("You can now play your Spotify playlists in Pod! Requires Spotify Premium.")
+    }
+  }
+}
+
+struct SpotifyAlertModifierLegacy: ViewModifier {
+  @Binding var isPresented: Bool
+  @Binding var hasShownSpotifyAlert: Bool
+
+  func body(content: Content) -> some View {
+    content.alert("Spotify Integration", isPresented: $isPresented) {
+      Button("Open Settings") {
+        hasShownSpotifyAlert = true
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        NotificationCenter.default.post(name: NSNotification.Name("OpenSpotifySettings"), object: nil)
+      }
+      Button("Maybe Later", role: .cancel) {
+        hasShownSpotifyAlert = true
+      }
+    } message: {
+      Text("You can now play your Spotify playlists in Pod! Requires Spotify Premium.")
+    }
   }
 }
 

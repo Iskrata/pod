@@ -31,48 +31,60 @@ class AlbumViewModel: ProtocolView {
         self.loadUrl = settings.musicFolderDir
         self.loadDirectories()
         self.loadFavoriteRadioStations()
-        
+        self.loadSpotifyPlaylists()
+        self.loadSpotifyAlbums()
+
         settings.$musicFolderDir
             .sink { [weak self] newFolderPath in
                 self?.loadUrl = newFolderPath
                 self?.loadDirectories()
                 self?.loadFavoriteRadioStations()
+                self?.loadSpotifyPlaylists()
+                self?.loadSpotifyAlbums()
             }
             .store(in: &cancellables)
-        
-        // Listen for changes in favorite stations
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(reloadFavoriteStations),
             name: NSNotification.Name("FavoriteStationsChanged"),
             object: nil
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(reloadSpotifyPlaylists),
+            name: NSNotification.Name("SpotifyPlaylistsChanged"),
+            object: nil
+        )
     }
     
     @objc private func reloadFavoriteStations() {
-        // Remove existing radio stations
-        albums.removeAll { $0.isRadioStation }
-        // Load updated favorites
-        loadFavoriteRadioStations()
+        DispatchQueue.main.async { [weak self] in
+            self?.albums.removeAll { $0.isRadioStation }
+            self?.loadFavoriteRadioStations()
+        }
+    }
+
+    @objc private func reloadSpotifyPlaylists() {
+        DispatchQueue.main.async { [weak self] in
+            self?.albums.removeAll { $0.isSpotifyPlaylist || $0.isSpotifyAlbum }
+            self?.loadSpotifyPlaylists()
+            self?.loadSpotifyAlbums()
+        }
     }
     
     func sortAlbums() {
-        albums.sort { (album1, album2) -> Bool in
-            if let cover1 = album1.coverImage, let cover2 = album2.coverImage {
-                return true
-            } else if album1.coverImage != nil {
-                return true
-            } else if album2.coverImage != nil {
-                return false
-            } else {
-                if album1.name == "Unknown album" && album2.name != "Unknown album" {
-                    return false
-                } else if album2.name == "Unknown album" && album1.name != "Unknown album" {
-                    return true
-                } else {
-                    return true
-                }
-            }
+        albums.sort { album1, album2 in
+            // Priority: albums with artwork > albums without > "Unknown album"
+            let hasArt1 = album1.coverImage != nil || album1.spotifyImageUrl != nil
+            let hasArt2 = album2.coverImage != nil || album2.spotifyImageUrl != nil
+            let isUnknown1 = album1.name == "Unknown album"
+            let isUnknown2 = album2.name == "Unknown album"
+
+            if hasArt1 != hasArt2 { return hasArt1 }
+            if isUnknown1 != isUnknown2 { return !isUnknown1 }
+            return album1.name.localizedCaseInsensitiveCompare(album2.name) == .orderedAscending
         }
     }
     
@@ -135,7 +147,7 @@ class AlbumViewModel: ProtocolView {
     private func loadFavoriteRadioStations() {
         if let data = UserDefaults.standard.data(forKey: "favoriteStations"),
            let stations = try? JSONDecoder().decode([RadioStation].self, from: data) {
-            
+
             let radioAlbums = stations.map { station in
                 Album(
                     name: station.name,
@@ -145,10 +157,41 @@ class AlbumViewModel: ProtocolView {
                     streamUrl: station.url
                 )
             }
-            
+
             albums.append(contentsOf: radioAlbums)
             sortAlbums()
         }
+    }
+
+    private func loadSpotifyPlaylists() {
+        let spotifyPlaylists = SpotifyService.shared.selectedPlaylists.map { playlist in
+            Album(
+                name: playlist.name,
+                coverImage: nil,
+                path: playlist.id,
+                isSpotifyPlaylist: true,
+                spotifyPlaylistId: playlist.id,
+                spotifyImageUrl: playlist.imageUrl
+            )
+        }
+        albums.append(contentsOf: spotifyPlaylists)
+        sortAlbums()
+    }
+
+    private func loadSpotifyAlbums() {
+        let spotifyAlbums = SpotifyService.shared.selectedAlbums.map { album in
+            Album(
+                name: album.name,
+                coverImage: nil,
+                path: album.id,
+                spotifyImageUrl: album.imageUrl,
+                isSpotifyAlbum: true,
+                spotifyAlbumId: album.id,
+                spotifyAlbumUri: album.uri
+            )
+        }
+        albums.append(contentsOf: spotifyAlbums)
+        sortAlbums()
     }
     
     func nextClick() {
@@ -167,12 +210,29 @@ class AlbumViewModel: ProtocolView {
     
     func middleClick() {
         let selectedAlbum = albums[activeIndex]
-        
+
         if selectedAlbum.isRadioStation {
             if let streamUrl = selectedAlbum.streamUrl {
                 GlobalState.shared.songViewModel.playRadioStation(
                     url: streamUrl,
                     name: selectedAlbum.name
+                )
+            }
+        } else if selectedAlbum.isSpotifyPlaylist {
+            if let playlistId = selectedAlbum.spotifyPlaylistId {
+                GlobalState.shared.songViewModel.playSpotifyPlaylist(
+                    playlistId: playlistId,
+                    playlistName: selectedAlbum.name,
+                    imageUrl: selectedAlbum.spotifyImageUrl
+                )
+            }
+        } else if selectedAlbum.isSpotifyAlbum {
+            if let albumId = selectedAlbum.spotifyAlbumId, let albumUri = selectedAlbum.spotifyAlbumUri {
+                GlobalState.shared.songViewModel.playSpotifyAlbum(
+                    albumId: albumId,
+                    albumUri: albumUri,
+                    albumName: selectedAlbum.name,
+                    imageUrl: selectedAlbum.spotifyImageUrl
                 )
             }
         } else {

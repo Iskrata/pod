@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spotify Player</title>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+</head>
+<body>
+<script>
+    const accessToken = '{{ACCESS_TOKEN}}';
+    let player = null;
+    let deviceId = null;
+    let positionInterval = null;
+    let lastTrackId = null;
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+        player = new Spotify.Player({
+            name: 'Pod Music Player',
+            getOAuthToken: cb => { cb(accessToken); },
+            volume: 0.6
+        });
+
+        player.addListener('ready', ({ device_id }) => {
+            deviceId = device_id;
+            sendToSwift({ event: 'ready', deviceId: device_id });
+            startPositionPolling();
+        });
+
+        player.addListener('not_ready', ({ device_id }) => {
+            sendToSwift({ event: 'not_ready', deviceId: device_id });
+            stopPositionPolling();
+        });
+
+        player.addListener('player_state_changed', state => {
+            if (!state) return;
+
+            const track = state.track_window.current_track;
+            const currentTrackId = track?.id;
+            const trackChanged = lastTrackId && currentTrackId && lastTrackId !== currentTrackId;
+            lastTrackId = currentTrackId;
+
+            sendToSwift({
+                event: 'state_changed',
+                paused: state.paused,
+                position: state.position,
+                duration: state.duration,
+                trackId: currentTrackId,
+                trackName: track?.name,
+                trackArtist: track?.artists?.[0]?.name,
+                trackAlbum: track?.album?.name,
+                trackImage: track?.album?.images?.[0]?.url,
+                trackChanged: trackChanged
+            });
+        });
+
+        player.addListener('initialization_error', ({ message }) => {
+            sendToSwift({ event: 'error', type: 'init', message: message });
+        });
+
+        player.addListener('authentication_error', ({ message }) => {
+            sendToSwift({ event: 'error', type: 'auth', message: message });
+        });
+
+        player.addListener('account_error', ({ message }) => {
+            sendToSwift({ event: 'error', type: 'account', message: message });
+        });
+
+        player.addListener('playback_error', ({ message }) => {
+            sendToSwift({ event: 'error', type: 'playback', message: message });
+        });
+
+        player.connect();
+    };
+
+    function startPositionPolling() {
+        stopPositionPolling();
+        positionInterval = setInterval(async () => {
+            const state = await player?.getCurrentState();
+            if (state && !state.paused) {
+                sendToSwift({
+                    event: 'position_update',
+                    position: state.position,
+                    duration: state.duration
+                });
+            }
+        }, 1000);
+    }
+
+    function stopPositionPolling() {
+        if (positionInterval) {
+            clearInterval(positionInterval);
+            positionInterval = null;
+        }
+    }
+
+    function sendToSwift(data) {
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.spotifyBridge) {
+            window.webkit.messageHandlers.spotifyBridge.postMessage(data);
+        }
+    }
+
+    function playTrack(uri) {
+        if (!deviceId) return;
+        fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ uris: [uri] }),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+    }
+
+    function playContext(contextUri, offset) {
+        if (!deviceId) return;
+        fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                context_uri: contextUri,
+                offset: { position: offset }
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+    }
+
+    function togglePlayPause() {
+        player?.togglePlay();
+    }
+
+    function nextTrack() {
+        player?.nextTrack();
+    }
+
+    function previousTrack() {
+        player?.previousTrack();
+    }
+
+    function seek(positionMs) {
+        player?.seek(positionMs);
+    }
+
+    function setVolume(vol) {
+        player?.setVolume(vol);
+    }
+</script>
+</body>
+</html>

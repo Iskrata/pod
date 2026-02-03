@@ -64,6 +64,11 @@ struct AlbumsView: View {
                                                 ZStack(alignment: .bottomTrailing) {
                                                     if viewModel.albums[index].isRadioStation {
                                                         RadioStationView(size: 150)
+                                                    } else if viewModel.albums[index].isSpotifyPlaylist || viewModel.albums[index].isSpotifyAlbum {
+                                                        AsyncSpotifyImage(
+                                                            imageUrl: viewModel.albums[index].spotifyImageUrl,
+                                                            size: 150
+                                                        )
                                                     } else if let coverImage = viewModel.albums[index].coverImage {
                                                         Image(nsImage: coverImage)
                                                             .resizable()
@@ -113,5 +118,44 @@ struct AlbumsView: View {
     private func updateScrollOffset(for index: Int, in size: CGSize) {
         let albumWidthWithSpacing = 170.0
         viewModel.scrollOffset = -(CGFloat(index) * albumWidthWithSpacing)
+    }
+}
+
+struct AsyncSpotifyImage: View {
+    let imageUrl: String?
+    let size: CGFloat
+
+    var body: some View {
+        AsyncImage(url: URL(string: imageUrl ?? "")) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: size, height: size)
+                    .cornerRadius(2)
+            case .failure, .empty:
+                SpotifyPlaceholderView(size: size)
+            @unknown default:
+                SpotifyPlaceholderView(size: size)
+            }
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+struct SpotifyPlaceholderView: View {
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(Color(red: 0.12, green: 0.12, blue: 0.12))
+                .frame(width: size, height: size)
+                .cornerRadius(2)
+            Image(systemName: "music.note")
+                .font(.system(size: size * 0.3))
+                .foregroundColor(.green)
+        }
     }
 }

@@ -19,7 +19,7 @@ class OnboardingViewModel: ProtocolView {
     private let hapticManager = NSHapticFeedbackManager.defaultPerformer
     
     func inc() {        
-        if (self.activeScreen < 4) {
+        if (self.activeScreen < 3) {
             if self.activeScreen == 1 && !(hasScrolledUp && hasScrolledDown) {
                 return
             }

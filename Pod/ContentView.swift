@@ -39,6 +39,7 @@ struct ContentView: View {
 
   private let views: [Screen: any ProtocolView] = [
     .onboarding: OnboardingViewModel(),
+    .mainMenu: GlobalState.shared.mainMenuViewModel,
     .song: GlobalState.shared.songViewModel,
     .albums: GlobalState.shared.albumViewModel,
   ]

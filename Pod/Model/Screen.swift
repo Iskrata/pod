@@ -9,6 +9,7 @@ import Foundation
 
 enum Screen {
     case onboarding
+    case mainMenu
     case albums
     case song
 }

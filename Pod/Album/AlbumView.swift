@@ -11,7 +11,16 @@ import AVFoundation
 struct AlbumsView: View {
     @ObservedObject var viewModel: AlbumViewModel
     @State private var isAnimating = false
-    
+
+    private var title: String {
+        switch GlobalState.shared.sourceFilter {
+        case .spotify: return "Spotify"
+        case .radio: return "Radio"
+        case .local: return "Local"
+        case .none: return "Albums"
+        }
+    }
+
     private func animatedBars() -> some View {
         HStack(spacing: 3) {
             ForEach(0..<3) { index in
@@ -36,11 +45,12 @@ struct AlbumsView: View {
     }
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+            MenuBar(title: title, isPlaying: GlobalState.shared.songViewModel.isPlaying)
             GeometryReader { outerGeometry in
                 VStack {
                     Spacer()
-                    if viewModel.albums.count == 0 {
+                    if viewModel.filteredAlbums.isEmpty {
                         HStack {
                             Spacer()
                             VStack (alignment: .center, spacing: 10) {
@@ -48,28 +58,29 @@ struct AlbumsView: View {
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: 30, height: 30)
-                                Text("No music found.").bold()
-                                Text("Move some mp3's into the Music folder on your Mac").font(.system(size: 10, design: .default))
-                            }.frame(width: 150)
+                                Text("No items found.").bold()
+                                Text("Configure in Settings").font(.system(size: 10, design: .default))
+                                OpenSettingsButton()
+                            }.frame(width: 180)
                             Spacer()
                         }
                     }
                     else {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 20) {
-                                ForEach(viewModel.albums.indices, id: \.self) { index in
+                                ForEach(viewModel.filteredAlbums.indices, id: \.self) { index in
                                     GeometryReader { innerGeometry in
                                         VStack(spacing: 10) {
-                                            if index < viewModel.albums.count {
+                                            if index < viewModel.filteredAlbums.count {
                                                 ZStack(alignment: .bottomTrailing) {
-                                                    if viewModel.albums[index].isRadioStation {
+                                                    if viewModel.filteredAlbums[index].isRadioStation {
                                                         RadioStationView(size: 150)
-                                                    } else if viewModel.albums[index].isSpotifyPlaylist || viewModel.albums[index].isSpotifyAlbum {
+                                                    } else if viewModel.filteredAlbums[index].isSpotifyPlaylist || viewModel.filteredAlbums[index].isSpotifyAlbum {
                                                         AsyncSpotifyImage(
-                                                            imageUrl: viewModel.albums[index].spotifyImageUrl,
+                                                            imageUrl: viewModel.filteredAlbums[index].spotifyImageUrl,
                                                             size: 150
                                                         )
-                                                    } else if let coverImage = viewModel.albums[index].coverImage {
+                                                    } else if let coverImage = viewModel.filteredAlbums[index].coverImage {
                                                         Image(nsImage: coverImage)
                                                             .resizable()
                                                             .frame(width: 150, height: 150)
@@ -82,7 +93,7 @@ struct AlbumsView: View {
                                                     }
                                                 }
                                                 
-                                                Text(viewModel.albums[index].name)
+                                                Text(viewModel.filteredAlbums[index].name)
                                                     .font(.system(size: 13, weight: .heavy))
                                                     .lineLimit(2)
                                                     .multilineTextAlignment(.center)
@@ -156,6 +167,24 @@ struct SpotifyPlaceholderView: View {
             Image(systemName: "music.note")
                 .font(.system(size: size * 0.3))
                 .foregroundColor(.green)
+        }
+    }
+}
+
+struct OpenSettingsButton: View {
+    var body: some View {
+        if #available(macOS 14.0, *) {
+            SettingsLink {
+                Text("Open Settings")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+        } else {
+            Button("Open Settings") {
+                NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
         }
     }
 }

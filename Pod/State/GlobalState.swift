@@ -13,7 +13,10 @@ class GlobalState: ObservableObject {
     
     var songViewModel = SongViewModel()
     lazy var albumViewModel = AlbumViewModel()
+    lazy var mainMenuViewModel = MainMenuViewModel()
     var selectedAlbumDir: String = ""
+
+    @Published var sourceFilter: SourceFilter?
     
     private init() {
         let savedVersion = UserDefaults.standard.string(forKey: "onboardingVersion")
@@ -39,7 +42,7 @@ class GlobalState: ObservableObject {
         }
     }
     
-    @Published var activeView: Screen = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? .albums : .onboarding
+    @Published var activeView: Screen = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? .mainMenu : .onboarding
     
     @Published var appearance: String = UserDefaults.standard.string(forKey: "appearance") ?? "Light" {
         didSet {

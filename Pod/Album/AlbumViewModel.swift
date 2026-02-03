@@ -16,6 +16,7 @@ class AlbumViewModel: ProtocolView {
     
     @Published var loadUrl: String = ""
     @Published var albums: [Album] = []
+    @Published var filteredAlbums: [Album] = []
     @Published var scrollOffset: CGFloat = 0
     @Published var activeIndex: Int = 0
     
@@ -86,6 +87,22 @@ class AlbumViewModel: ProtocolView {
             if isUnknown1 != isUnknown2 { return !isUnknown1 }
             return album1.name.localizedCaseInsensitiveCompare(album2.name) == .orderedAscending
         }
+    }
+
+    func applyFilter() {
+        guard let filter = GlobalState.shared.sourceFilter else {
+            filteredAlbums = albums
+            return
+        }
+        switch filter {
+        case .spotify:
+            filteredAlbums = albums.filter { $0.isSpotifyPlaylist || $0.isSpotifyAlbum }
+        case .radio:
+            filteredAlbums = albums.filter { $0.isRadioStation }
+        case .local:
+            filteredAlbums = albums.filter { !$0.isRadioStation && !$0.isSpotifyPlaylist && !$0.isSpotifyAlbum }
+        }
+        activeIndex = 0
     }
     
     func loadDirectories() {
@@ -206,10 +223,12 @@ class AlbumViewModel: ProtocolView {
     }
     
     func menuClick() {
+        GlobalState.shared.activeView = .mainMenu
     }
     
     func middleClick() {
-        let selectedAlbum = albums[activeIndex]
+        guard !filteredAlbums.isEmpty else { return }
+        let selectedAlbum = filteredAlbums[activeIndex]
 
         if selectedAlbum.isRadioStation {
             if let streamUrl = selectedAlbum.streamUrl {
@@ -242,28 +261,20 @@ class AlbumViewModel: ProtocolView {
     }
     
     func wheelUp(){
-        if albums.isEmpty {
-            return
-        }
-        
-        if (activeIndex > 0)
-        {
+        if filteredAlbums.isEmpty { return }
+        if activeIndex > 0 {
             activeIndex -= 1
-            self.hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
+            hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
         }
-        GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
+        GlobalState.shared.selectedAlbumDir = filteredAlbums[activeIndex].path
     }
-    
+
     func wheelDown(){
-        if albums.isEmpty {
-            return
-        }
-        
-        if (activeIndex < albums.count - 1)
-        {
+        if filteredAlbums.isEmpty { return }
+        if activeIndex < filteredAlbums.count - 1 {
             activeIndex += 1
-            self.hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
+            hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
         }
-        GlobalState.shared.selectedAlbumDir = albums[activeIndex].path
+        GlobalState.shared.selectedAlbumDir = filteredAlbums[activeIndex].path
     }
 }

@@ -12,7 +12,7 @@ Cut a new Pod release: bump versions, archive, notarize, sign with Sparkle, push
 | Repo | Path | Purpose |
 |------|------|---------|
 | `pod` | `~/Developer/pod` | App source. `git@github.com:Iskrata/pod.git` |
-| `pod-website` | `~/Developer/pod-website` | Vercel site (www.desktopipod.com). Hosts the `.zip`, `appcast.xml`, `version.json`. |
+| `pod-website` | `~/Developer/pod-website` | Vercel site (www.desktopipod.com). Hosts both `.zip` (Sparkle) and `.dmg` (manual download), plus `appcast.xml`, `version.json`. |
 | `pod-public` | `~/Developer/pod-public` | Legacy mirror for pre-Sparkle (NSAlert) users polling `version.json`. Mirrors the website's appcast for safety. |
 
 ## Update channel architecture
@@ -29,6 +29,7 @@ Cut a new Pod release: bump versions, archive, notarize, sign with Sparkle, push
 - **Developer ID Application** cert: in login keychain. Team `B7949NL6NG`. CN: `ISKREN BOZHIDAROV ALEKSANDROV`.
 - **Sparkle EdDSA private key**: in login keychain (item: `Private key for signing Sparkle updates`). Public counterpart `GjgBpBs3vAJI0W4Kv3Vz7qgD4hp2uFqnS/iOElRmn68=` is baked into `Pod/Info.plist`. **If this Mac is ever wiped, all Sparkle users are stranded** — back up the private key (Keychain Access → export `.p12`).
 - **Notarytool profile**: `AC_PASSWORD` stored in keychain. Apple ID `iskrenalexandrov@gmail.com`, team `B7949NL6NG`. App-specific password generated at System Settings → Sign-In and Security → App-Specific Passwords.
+- **`create-dmg`**: required for the drag-to-Applications dmg. `brew install create-dmg`.
 
 ## Steps to ship a new version
 
@@ -40,7 +41,9 @@ Cut a new Pod release: bump versions, archive, notarize, sign with Sparkle, push
    ```
    POD_NOTES="<changelog one-liner>" scripts/release.sh
    ```
-   It will: archive → export Developer ID → submit to notarytool (waits for Accepted) → staple → ditto-zip → `sign_update` → copy zip into `pod-website/public/releases/Pod-<version>.zip` → rewrite `appcast.xml` and `version.json` in **both** `pod-website/public/` and `pod-public/`.
+   It will: archive → export Developer ID → submit zip to notarytool → staple → `sign_update` → build dmg with drag-to-Applications layout → notarize+staple dmg → copy both into `pod-website/public/releases/` → rewrite `appcast.xml` (zip enclosure, for Sparkle) and `version.json` (dmg URL, for humans) in **both** `pod-website/public/` and `pod-public/`.
+
+   **Two artifacts, two purposes**: zip is what Sparkle in-place updates use (faster); dmg is what the website "Get on Mac" button serves and what the legacy NSAlert opens (visual drag-to-Applications install).
 
 3. **Commit + push all three repos**. The script prints the exact commands at the end:
    ```

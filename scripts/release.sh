@@ -83,9 +83,35 @@ LENGTH=$(echo "$SIG_LINE" | sed -n 's/.*length="\([^"]*\)".*/\1/p')
 PUBDATE=$(LC_ALL=C date -u +"%a, %d %b %Y %H:%M:%S +0000")
 ENCLOSURE_URL="https://www.desktopipod.com/releases/$ZIP"
 
-echo "▶ Copying zip to website public/releases/"
+echo "▶ Building drag-to-Applications dmg"
+DMG="Pod-$VERSION.dmg"
+DMG_PATH="$WORK/$DMG"
+DMG_STAGE="$WORK/dmg-stage"
+rm -rf "$DMG_STAGE" && mkdir -p "$DMG_STAGE"
+cp -R "$APP" "$DMG_STAGE/"
+command -v create-dmg >/dev/null || { echo "create-dmg missing — brew install create-dmg"; exit 1; }
+create-dmg \
+  --volname "Pod $VERSION" \
+  --window-pos 200 120 \
+  --window-size 600 400 \
+  --icon-size 110 \
+  --icon "Pod.app" 175 200 \
+  --hide-extension "Pod.app" \
+  --app-drop-link 425 200 \
+  --no-internet-enable \
+  "$DMG_PATH" \
+  "$DMG_STAGE"
+
+echo "▶ Notarizing dmg"
+xcrun notarytool submit "$DMG_PATH" --keychain-profile "$PROFILE" --wait
+xcrun stapler staple "$DMG_PATH"
+
+echo "▶ Copying artifacts to website public/releases/"
 mkdir -p "$WEBSITE/public/releases"
 cp "$ZIP_PATH" "$WEBSITE/public/releases/$ZIP"
+cp "$DMG_PATH" "$WEBSITE/public/releases/$DMG"
+DMG_LENGTH=$(stat -f%z "$DMG_PATH")
+DOWNLOAD_URL="https://www.desktopipod.com/releases/$DMG"
 
 ITEM=$(cat <<EOF
     <item>
@@ -126,16 +152,18 @@ write_appcast "$PUBLIC_REPO/appcast.xml" "https://raw.githubusercontent.com/Iskr
 cat > "$WEBSITE/public/version.json" <<EOF
 {
   "version": "$VERSION",
-  "download_url": "https://www.desktopipod.com/releases/$ZIP"
+  "download_url": "$DOWNLOAD_URL"
 }
 EOF
 cp "$WEBSITE/public/version.json" "$PUBLIC_REPO/version.json"
 
 echo
 echo "✅ Built Pod $VERSION (build $BUILD)"
-echo "   zip:      $ZIP_PATH ($LENGTH bytes)"
-echo "   ed sig:   $ED_SIG"
-echo "   serving:  $ENCLOSURE_URL"
+echo "   zip (Sparkle): $ZIP_PATH ($LENGTH bytes)"
+echo "   dmg (humans):  $DMG_PATH ($DMG_LENGTH bytes)"
+echo "   ed sig:        $ED_SIG"
+echo "   appcast:       $ENCLOSURE_URL"
+echo "   download:      $DOWNLOAD_URL"
 echo
 echo "Next:"
 echo "  cd $WEBSITE && git add -A && git commit -m 'Release $VERSION' && git push"

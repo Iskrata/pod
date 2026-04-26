@@ -1,0 +1,14 @@
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+
+# Rust
+pod-spotify-bridge/target/
+
+# macOS
+.DS_Store
+
+# Pod release artifacts
+build/release/

@@ -20,14 +20,14 @@ class MainMenuViewModel: ProtocolView {
     func wheelUp() {
         if selectedIndex > 0 {
             selectedIndex -= 1
-            hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
+            hapticManager.perform(.generic, performanceTime: .now)
         }
     }
 
     func wheelDown() {
         if selectedIndex < menuItems.count - 1 {
             selectedIndex += 1
-            hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
+            hapticManager.perform(.generic, performanceTime: .now)
         }
     }
 

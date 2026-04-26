@@ -134,7 +134,7 @@ struct SongProgress: View {
                 .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                 .frame(width: 40, alignment: .leading)
             
-            ProgressView(value:viewModel.currentTime / viewModel.duration)
+            ProgressView(value: viewModel.duration > 0 ? viewModel.currentTime / viewModel.duration : 0)
                 .border(Color.gray, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
                 .cornerRadius(/*@START_MENU_TOKEN@*/3.0/*@END_MENU_TOKEN@*/)
             

@@ -21,6 +21,36 @@ struct AlbumsView: View {
         }
     }
 
+    private var emptyStateIcon: String {
+        if !GlobalState.shared.searchQuery.isEmpty { return "magnifyingglass" }
+        switch GlobalState.shared.sourceFilter {
+        case .spotify: return "music.note"
+        case .radio: return "radio"
+        case .local: return "folder"
+        case .none: return "music.note.list"
+        }
+    }
+
+    private var emptyStateTitle: String {
+        if !GlobalState.shared.searchQuery.isEmpty { return "No results" }
+        switch GlobalState.shared.sourceFilter {
+        case .spotify: return "No Spotify content"
+        case .radio: return "No radio stations"
+        case .local: return "No local music"
+        case .none: return "No items found"
+        }
+    }
+
+    private var emptyStateSubtitle: String {
+        if !GlobalState.shared.searchQuery.isEmpty { return "Try a different search" }
+        switch GlobalState.shared.sourceFilter {
+        case .spotify: return "Click to configure Spotify in Settings"
+        case .radio: return "Click to add radio stations in Settings"
+        case .local: return "Add music to your Music folder"
+        case .none: return "Click to configure in Settings"
+        }
+    }
+
     private func animatedBars() -> some View {
         HStack(spacing: 3) {
             ForEach(0..<3) { index in
@@ -39,96 +69,122 @@ struct AlbumsView: View {
         .frame(width: 15, height: 16)
     }
 
-    func scale(for innerFrame: CGRect, in outerFrame: CGRect) -> CGFloat {
-        let scale = max(0.8, min(1, 1 - abs(innerFrame.midX - outerFrame.midX) / outerFrame.width))
-        return scale
+    private let albumSize: CGFloat = 140
+    private let sideRotation: Double = 70
+    private let sideSpacing: CGFloat = 45
+    private let centerGap: CGFloat = 75
+
+    private func coverFlowOffset(for index: Int) -> CGFloat {
+        let diff = index - viewModel.activeIndex
+        if diff == 0 { return 0 }
+        let sign: CGFloat = diff > 0 ? 1 : -1
+        return sign * (centerGap + CGFloat(abs(diff) - 1) * sideSpacing)
+    }
+
+    private func coverFlowRotation(for index: Int) -> Double {
+        let diff = index - viewModel.activeIndex
+        if diff == 0 { return 0 }
+        return diff > 0 ? -sideRotation : sideRotation
+    }
+
+    private func coverFlowZIndex(for index: Int) -> Double {
+        Double(viewModel.filteredAlbums.count - abs(index - viewModel.activeIndex))
+    }
+
+    private func coverFlowOpacity(for index: Int) -> Double {
+        let dist = abs(index - viewModel.activeIndex)
+        if dist == 0 { return 1.0 }
+        return max(0.3, 1.0 - Double(dist) * 0.15)
+    }
+
+    @ViewBuilder
+    private func albumArt(for index: Int) -> some View {
+        let album = viewModel.filteredAlbums[index]
+        if album.isRadioStation {
+            RadioStationView(size: albumSize)
+        } else if album.isSpotifyPlaylist || album.isSpotifyAlbum {
+            AsyncSpotifyImage(imageUrl: album.spotifyImageUrl, size: albumSize)
+        } else if let coverImage = album.coverImage {
+            Image(nsImage: coverImage)
+                .resizable()
+                .frame(width: albumSize, height: albumSize)
+                .cornerRadius(2)
+        } else {
+            Rectangle()
+                .fill(Color.gray)
+                .frame(width: albumSize, height: albumSize)
+                .cornerRadius(2)
+        }
     }
 
     var body: some View {
         VStack(spacing: 0) {
             MenuBar(title: title, isPlaying: GlobalState.shared.songViewModel.isPlaying)
-            GeometryReader { outerGeometry in
-                VStack {
+            if !GlobalState.shared.searchQuery.isEmpty {
+                HStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 10))
+                        .foregroundColor(.gray)
+                    Text(GlobalState.shared.searchQuery)
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .foregroundColor(.white)
                     Spacer()
-                    if viewModel.filteredAlbums.isEmpty {
-                        HStack {
-                            Spacer()
-                            VStack (alignment: .center, spacing: 10) {
-                                Image(systemName: "magnifyingglass")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 30, height: 30)
-                                Text("No items found.").bold()
-                                Text("Configure in Settings").font(.system(size: 10, design: .default))
-                                OpenSettingsButton()
-                            }.frame(width: 180)
-                            Spacer()
-                        }
-                    }
-                    else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 20) {
-                                ForEach(viewModel.filteredAlbums.indices, id: \.self) { index in
-                                    GeometryReader { innerGeometry in
-                                        VStack(spacing: 10) {
-                                            if index < viewModel.filteredAlbums.count {
-                                                ZStack(alignment: .bottomTrailing) {
-                                                    if viewModel.filteredAlbums[index].isRadioStation {
-                                                        RadioStationView(size: 150)
-                                                    } else if viewModel.filteredAlbums[index].isSpotifyPlaylist || viewModel.filteredAlbums[index].isSpotifyAlbum {
-                                                        AsyncSpotifyImage(
-                                                            imageUrl: viewModel.filteredAlbums[index].spotifyImageUrl,
-                                                            size: 150
-                                                        )
-                                                    } else if let coverImage = viewModel.filteredAlbums[index].coverImage {
-                                                        Image(nsImage: coverImage)
-                                                            .resizable()
-                                                            .frame(width: 150, height: 150)
-                                                            .cornerRadius(2)
-                                                    } else {
-                                                        Rectangle()
-                                                            .fill(Color.gray)
-                                                            .frame(width: 150, height: 150)
-                                                            .cornerRadius(2)
-                                                    }
-                                                }
-                                                
-                                                Text(viewModel.filteredAlbums[index].name)
-                                                    .font(.system(size: 13, weight: .heavy))
-                                                    .lineLimit(2)
-                                                    .multilineTextAlignment(.center)
-                                                    .foregroundColor(.black)
-                                            }
-                                        }
-                                        .scaleEffect(self.scale(for: innerGeometry.frame(in: .global), in: outerGeometry.frame(in: .global)))
-                                        .onTapGesture {
-                                            withAnimation {
-                                                viewModel.activeIndex = index
-                                            }
-                                        }
-                                    }
-                                    .frame(width: 150, height: 200)
-                                }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.black.opacity(0.85))
+            }
+            if viewModel.filteredAlbums.isEmpty {
+                Spacer()
+                VStack(spacing: 8) {
+                    Image(systemName: emptyStateIcon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.gray)
+                    Text(emptyStateTitle).bold()
+                        .foregroundColor(.black)
+                    Text(emptyStateSubtitle)
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }.frame(width: 220)
+                Spacer()
+            } else {
+                ZStack {
+                    ForEach(viewModel.filteredAlbums.indices, id: \.self) { index in
+                        VStack(spacing: 6) {
+                            albumArt(for: index)
+                                .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 3)
+
+                            if index == viewModel.activeIndex {
+                                Text(viewModel.filteredAlbums[index].name)
+                                    .font(.system(size: 12, weight: .heavy))
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.center)
+                                    .foregroundColor(.black)
+                                    .frame(width: albumSize + 20)
                             }
-                            .padding(.horizontal, (outerGeometry.size.width - 150) / 2)
-                            .offset(x: viewModel.scrollOffset)
+                        }
+                        .rotation3DEffect(
+                            .degrees(coverFlowRotation(for: index)),
+                            axis: (x: 0, y: 1, z: 0),
+                            perspective: 0.5
+                        )
+                        .offset(x: coverFlowOffset(for: index))
+                        .zIndex(coverFlowZIndex(for: index))
+                        .opacity(coverFlowOpacity(for: index))
+                        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: viewModel.activeIndex)
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                                viewModel.activeIndex = index
+                            }
                         }
                     }
-                    Spacer()
                 }
-                .onChange(of: viewModel.activeIndex) { newIndex in
-                    withAnimation {
-                        updateScrollOffset(for: newIndex, in: outerGeometry.size)
-                    }
-                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-    }
-
-    /// Updates the scrollOffset based on the active Index, to center the album.
-    private func updateScrollOffset(for index: Int, in size: CGSize) {
-        let albumWidthWithSpacing = 170.0
-        viewModel.scrollOffset = -(CGFloat(index) * albumWidthWithSpacing)
     }
 }
 
@@ -171,20 +227,3 @@ struct SpotifyPlaceholderView: View {
     }
 }
 
-struct OpenSettingsButton: View {
-    var body: some View {
-        if #available(macOS 14.0, *) {
-            SettingsLink {
-                Text("Open Settings")
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
-        } else {
-            Button("Open Settings") {
-                NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
-        }
-    }
-}

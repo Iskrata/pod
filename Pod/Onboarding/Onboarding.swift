@@ -23,16 +23,18 @@ struct Onboarding: View {
       title: "Guide", iconName: "music.quarternote.3", heading: "Use the Music folder",
       description: "Paste your music into the Music folder on your Mac."),
     OnboardingScreenModel(
+      title: "Spotify", iconName: "music.note", heading: "Connect Spotify",
+      description: "Link your Spotify Premium account", isSpotifySetup: true),
+    OnboardingScreenModel(
       title: "Radio", iconName: "radio", heading: "Internet Radio",
       description: "Add your favorite radio stations", isRadioSetup: true),
-    OnboardingScreenModel(
-      title: "Soon", iconName: "app.connected.to.app.below.fill",
-      heading: "Connect your existing music", description: "Spotify and Apple Music integration"),
   ]
 
   var body: some View {
     ZStack {
-      if screens[viewModel.activeScreen].isRadioSetup {
+      if screens[viewModel.activeScreen].isSpotifySetup {
+        SpotifySetupScreen()
+      } else if screens[viewModel.activeScreen].isRadioSetup {
         RadioSetupScreen(radioViewModel: radioViewModel)
       } else {
         OnboardingScreen(
@@ -135,6 +137,62 @@ struct OnboardingScreen: View {
     }
   }
 
+}
+
+struct SpotifySetupScreen: View {
+  @ObservedObject private var spotifyService = SpotifyService.shared
+
+  var body: some View {
+    VStack(spacing: 16) {
+      Text("Spotify")
+        .font(.system(size: 20, weight: .bold))
+        .foregroundStyle(.black)
+
+      if spotifyService.isConnected {
+        Image(systemName: "checkmark.circle.fill")
+          .font(.system(size: 40))
+          .foregroundColor(.green)
+
+        Text("Connected!")
+          .font(.headline)
+          .foregroundStyle(.black)
+
+        if let user = spotifyService.currentUser {
+          Text(user.displayName ?? user.id)
+            .foregroundColor(.secondary)
+        }
+
+        Text("Press the middle button to continue")
+          .font(.caption)
+          .foregroundColor(.secondary)
+          .padding(.top)
+      } else {
+        Image(systemName: "music.note")
+          .font(.system(size: 40))
+          .foregroundColor(.green)
+
+        Text("Play your Spotify playlists with the click wheel")
+          .multilineTextAlignment(.center)
+          .foregroundColor(.secondary)
+          .frame(maxWidth: 280)
+
+        Button(action: { spotifyService.startAuth() }) {
+          Label("Connect with Spotify", systemImage: "link")
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.green)
+
+        Text("Requires Spotify Premium")
+          .font(.caption)
+          .foregroundColor(.secondary)
+
+        Text("Skip with the middle button if you don't use Spotify")
+          .font(.caption)
+          .foregroundColor(.secondary)
+          .padding(.top)
+      }
+    }
+  }
 }
 
 struct RadioSetupScreen: View {

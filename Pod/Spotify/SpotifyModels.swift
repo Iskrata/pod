@@ -7,19 +7,7 @@
 
 import Foundation
 
-struct SpotifyConstants {
-    static let clientId = "3d495ad1d9e344e09ab66917db09cb7e"
-    static let clientSecret = "794f97ad12a94e55bc7bb42b30aa9ce2"
-    static let redirectUri = "pod://callback"
-    static let scopes = [
-        "streaming",
-        "user-read-email",
-        "user-read-private",
-        "playlist-read-private",
-        "playlist-read-collaborative",
-        "user-library-read"
-    ].joined(separator: " ")
-}
+// Auth is now handled by librespot bridge — no client ID needed
 
 struct SpotifyPlaylist: Codable, Identifiable {
     let id: String
@@ -372,18 +360,4 @@ struct SpotifyUser: Codable {
     }
 }
 
-struct SpotifyTokenResponse: Codable {
-    let accessToken: String
-    let tokenType: String
-    let expiresIn: Int
-    let refreshToken: String?
-    let scope: String
-
-    enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
-        case tokenType = "token_type"
-        case expiresIn = "expires_in"
-        case refreshToken = "refresh_token"
-        case scope
-    }
-}
+// SpotifyTokenResponse removed — auth now handled by librespot bridge

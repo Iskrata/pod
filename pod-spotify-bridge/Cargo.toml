@@ -1,0 +1,27 @@
+[package]
+name = "pod-spotify-bridge"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+librespot-core = "0.8"
+librespot-playback = "0.8"
+librespot-metadata = "0.8"
+librespot-oauth = "0.8"
+librespot-protocol = "0.8"
+
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+futures-util = "0.3"
+hex = "0.4"
+reqwest = { version = "0.12", features = ["json"] }
+http = "1"
+log = "0.4"
+env_logger = "0.11"
+protobuf = "3"
+
+# Pin vergen ecosystem to compatible versions
+vergen = "=9.0.6"
+vergen-gitcl = "=1.0.5"
+vergen-lib = "=0.1.6"

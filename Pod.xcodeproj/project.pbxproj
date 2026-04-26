@@ -40,7 +40,8 @@
 		B1SPOT012D51000000000001 /* SpotifyModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1SPOT002D51000000000001 /* SpotifyModels.swift */; };
 		B1SPOT032D51000000000001 /* SpotifyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1SPOT022D51000000000001 /* SpotifyService.swift */; };
 		B1SPOT052D51000000000001 /* SpotifySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1SPOT042D51000000000001 /* SpotifySettings.swift */; };
-		B1SPOT072D51000000000001 /* spotify-player.html in Resources */ = {isa = PBXBuildFile; fileRef = B1SPOT062D51000000000001 /* spotify-player.html */; };
+		B1SPOTB12D51000000000001 /* SpotifyBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1SPOTB02D51000000000001 /* SpotifyBridge.swift */; };
+
 		EDAA5971B6F8BDA9B175B862 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E7C4A57AA3025CE8F74134 /* MainMenuView.swift */; };
 		F8C461D7B7B45E6FE7DAE0BA /* MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25EE55A31878A788E8F79846 /* MenuBar.swift */; };
 /* End PBXBuildFile section */
@@ -81,7 +82,7 @@
 		B1SPOT002D51000000000001 /* SpotifyModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyModels.swift; sourceTree = "<group>"; };
 		B1SPOT022D51000000000001 /* SpotifyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyService.swift; sourceTree = "<group>"; };
 		B1SPOT042D51000000000001 /* SpotifySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifySettings.swift; sourceTree = "<group>"; };
-		B1SPOT062D51000000000001 /* spotify-player.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "spotify-player.html"; sourceTree = "<group>"; };
+		B1SPOTB02D51000000000001 /* SpotifyBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyBridge.swift; sourceTree = "<group>"; };
 		D23D6EBA02F1E6374822A4D0 /* MainMenuViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainMenuViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -231,6 +232,7 @@
 		B1SPOT082D51000000000001 /* Spotify */ = {
 			isa = PBXGroup;
 			children = (
+				B1SPOTB02D51000000000001 /* SpotifyBridge.swift */,
 				B1SPOT002D51000000000001 /* SpotifyModels.swift */,
 				B1SPOT022D51000000000001 /* SpotifyService.swift */,
 				B1SPOT042D51000000000001 /* SpotifySettings.swift */,
@@ -241,7 +243,6 @@
 		B1SPOT092D51000000000001 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				B1SPOT062D51000000000001 /* spotify-player.html */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -314,7 +315,6 @@
 			files = (
 				B1BBDD312C26C38000C062D8 /* Preview Assets.xcassets in Resources */,
 				B1BBDD2E2C26C38000C062D8 /* Assets.xcassets in Resources */,
-				B1SPOT072D51000000000001 /* spotify-player.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,6 +351,7 @@
 				B1SPOT012D51000000000001 /* SpotifyModels.swift in Sources */,
 				B1SPOT032D51000000000001 /* SpotifyService.swift in Sources */,
 				B1SPOT052D51000000000001 /* SpotifySettings.swift in Sources */,
+				B1SPOTB12D51000000000001 /* SpotifyBridge.swift in Sources */,
 				B1SETC012D51000000000001 /* SettingsComponents.swift in Sources */,
 				AE14CCA383D09CAA018AD705 /* MainMenuViewModel.swift in Sources */,
 				EDAA5971B6F8BDA9B175B862 /* MainMenuView.swift in Sources */,
@@ -489,7 +490,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_ASSET_PATHS = "\"Pod/Preview Content\"";
 				DEVELOPMENT_TEAM = B7949NL6NG;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -504,7 +505,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.4;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "Iskren-Alexandrov.Pod";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -521,7 +522,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_ASSET_PATHS = "\"Pod/Preview Content\"";
 				DEVELOPMENT_TEAM = B7949NL6NG;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -536,7 +537,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.4;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "Iskren-Alexandrov.Pod";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

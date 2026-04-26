@@ -29,7 +29,13 @@ struct PodApp: App {
   init() {
     let config = TelemetryDeck.Config(appID: "9B3B75EC-D70D-4B62-902C-2967F932F84B")
     TelemetryDeck.initialize(config: config)
-    TelemetryDeck.signal("App.launched")
+    let info = Bundle.main.infoDictionary
+    TelemetryDeck.signal("App.launched", parameters: [
+      "bundleId": Bundle.main.bundleIdentifier ?? "unknown",
+      "shortVersion": info?["CFBundleShortVersionString"] as? String ?? "unknown",
+      "build": info?["CFBundleVersion"] as? String ?? "unknown",
+      "feedURL": info?["SUFeedURL"] as? String ?? "unknown",
+    ])
   }
 
   var body: some Scene {
@@ -37,11 +43,7 @@ struct PodApp: App {
       ContentView()
         .fixedSize()
         .preferredColorScheme(getColorScheme())
-        .onOpenURL { url in
-          if url.scheme == "pod" && url.host == "callback" {
-            SpotifyService.shared.handleCallback(url: url)
-          }
-        }
+        // OAuth callback now handled by librespot bridge (localhost:5588)
     }
     .applyWindowResizability()
 
@@ -72,6 +74,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       updaterDelegate: nil,
       userDriverDelegate: nil
     )
+    setupKeyboardMonitor()
+  }
+
+  private func setupKeyboardMonitor() {
+    NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+      let gs = GlobalState.shared
+
+      // Don't capture keys when settings window is focused
+      if NSApp.keyWindow != NSApp.windows.first { return event }
+
+      // Let system shortcuts (Cmd+Q, Cmd+W, Ctrl+…, Opt+…) through
+      let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+      if mods.contains(.command) || mods.contains(.control) || mods.contains(.option) {
+        return event
+      }
+
+      if event.keyCode == 53 { // Escape
+        if !gs.searchQuery.isEmpty {
+          gs.searchQuery = ""
+          return nil
+        }
+        return event
+      }
+
+      if event.keyCode == 51 { // Backspace
+        if !gs.searchQuery.isEmpty {
+          gs.searchQuery.removeLast()
+          return nil
+        }
+        return event
+      }
+
+      // Only allow search on album and main menu screens
+      if gs.activeView == .song { return event }
+
+      if let chars = event.characters, !chars.isEmpty {
+        let char = chars.first!
+        if char.isLetter || char.isNumber || char == " " {
+          gs.searchQuery.append(char)
+          if gs.activeView != .albums {
+            gs.activeView = .albums
+          }
+          return nil // suppress system sound
+        }
+      }
+
+      return event
+    }
   }
 
   private func configureWindow() {

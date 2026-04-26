@@ -135,7 +135,7 @@ struct SpotifyAccountView: View {
 
             WarningBadge(text: "Spotify Premium required", type: .warning)
 
-            Text("The Web Playback SDK only works with Premium accounts.")
+            Text("Spotify playback requires a Premium account.")
                 .font(.caption)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)

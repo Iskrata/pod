@@ -17,6 +17,7 @@ class GlobalState: ObservableObject {
     var selectedAlbumDir: String = ""
 
     @Published var sourceFilter: SourceFilter?
+    @Published var searchQuery: String = ""
     
     private init() {
         let savedVersion = UserDefaults.standard.string(forKey: "onboardingVersion")

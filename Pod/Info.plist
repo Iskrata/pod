@@ -19,7 +19,7 @@
 		<true/>
 	</dict>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/Iskrata/pod-public/main/appcast.xml</string>
+	<string>https://www.desktopipod.com/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>j4eBuuf69Nxzkx0XmDXnCNtX+F4aWFwFe5DhI3462z0=</string>
 	<key>SUEnableAutomaticChecks</key>

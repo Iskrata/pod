@@ -1,15 +1,6 @@
-//
-//  SpotifyService.swift
-//  Pod
-//
-//  Created by Claude on 03.02.26.
-//
-
 import Foundation
-import WebKit
 import Combine
 import AppKit
-import CryptoKit
 
 class SpotifyService: NSObject, ObservableObject {
     static let shared = SpotifyService()
@@ -30,203 +21,140 @@ class SpotifyService: NSObject, ObservableObject {
     @Published var selectedAlbums: [SpotifyAlbum] = []
     @Published var allAlbums: [SpotifyAlbum] = []
 
-    private var accessToken: String?
-    private var refreshToken: String?
-    private var tokenExpiration: Date?
-    private var codeVerifier: String?
+    private let bridge = SpotifyBridge.shared
 
-    var webView: WKWebView?
-
-    private let userDefaultsTokenKey = "spotifyAccessToken"
-    private let userDefaultsRefreshKey = "spotifyRefreshToken"
-    private let userDefaultsExpirationKey = "spotifyTokenExpiration"
+    private let userDefaultsCredentialsKey = "spotifyBridgeCredentials"
     private let userDefaultsSelectedPlaylistsKey = "spotifySelectedPlaylists"
     private let userDefaultsSelectedAlbumsKey = "spotifySelectedAlbums"
 
     private override init() {
         super.init()
-        loadTokens()
         loadSelectedPlaylists()
         loadSelectedAlbums()
-        if accessToken != nil {
-            Task { await validateAndRefreshToken() }
+        setupBridgeEvents()
+
+        // If we have stored credentials, try to reconnect
+        if let creds = loadCredentials() {
+            startBridgeWithCredentials(creds)
         }
     }
 
-    // MARK: - OAuth PKCE
+    // MARK: - Bridge Events
+
+    private func setupBridgeEvents() {
+        bridge.onEvent = { [weak self] event, data in
+            guard let self = self else { return }
+
+            switch event {
+            case "auth_complete":
+                self.isConnected = true
+                self.isPlayerReady = true
+                Task {
+                    await self.fetchUserPlaylists()
+                    await self.fetchUserAlbums()
+                }
+                NotificationCenter.default.post(name: NSNotification.Name("SpotifyConnected"), object: nil)
+
+            case "player_state":
+                let wasPlaying = self.isPlaying
+                let oldTrackUri = self.currentTrackId
+
+                self.isPlaying = data["is_playing"] as? Bool ?? false
+
+                if let pos = data["position_ms"] as? Int {
+                    self.currentTrackPosition = TimeInterval(pos) / 1000
+                }
+
+                let trackUri = data["track_uri"] as? String
+                let trackChanged = trackUri != oldTrackUri && trackUri != nil
+
+                if trackChanged, let uri = trackUri {
+                    self.currentTrackId = uri
+                    // Track metadata will be filled by the caller who loaded the tracks
+                }
+
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("SpotifyStateChanged"),
+                    object: nil,
+                    userInfo: ["trackChanged": trackChanged]
+                )
+
+            case "track_end":
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("SpotifyStateChanged"),
+                    object: nil,
+                    userInfo: ["trackChanged": true, "trackEnded": true]
+                )
+
+            case "session_expired":
+                print("[SpotifyService] Session expired, attempting re-auth")
+                if let creds = self.loadCredentials() {
+                    self.startBridgeWithCredentials(creds)
+                } else {
+                    self.disconnect()
+                }
+
+            default:
+                break
+            }
+        }
+    }
+
+    // MARK: - Auth
 
     func startAuth() {
-        codeVerifier = generateCodeVerifier()
-        guard let verifier = codeVerifier else { return }
-        let challenge = generateCodeChallenge(from: verifier)
-
-        var components = URLComponents(string: "https://accounts.spotify.com/authorize")!
-        components.queryItems = [
-            URLQueryItem(name: "client_id", value: SpotifyConstants.clientId),
-            URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "redirect_uri", value: SpotifyConstants.redirectUri),
-            URLQueryItem(name: "scope", value: SpotifyConstants.scopes),
-            URLQueryItem(name: "code_challenge_method", value: "S256"),
-            URLQueryItem(name: "code_challenge", value: challenge)
-        ]
-
-        guard let url = components.url else { return }
-        NSWorkspace.shared.open(url)
-    }
-
-    func handleCallback(url: URL) {
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
-              let code = components.queryItems?.first(where: { $0.name == "code" })?.value else {
-            return
-        }
-        Task { await exchangeCodeForToken(code: code) }
-    }
-
-    private func generateCodeVerifier() -> String {
-        var bytes = [UInt8](repeating: 0, count: 32)
-        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
-        return Data(bytes).base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
-    }
-
-    private func generateCodeChallenge(from verifier: String) -> String {
-        let data = Data(verifier.utf8)
-        let hash = SHA256.hash(data: data)
-        return Data(hash).base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
-    }
-
-    private func exchangeCodeForToken(code: String) async {
-        guard let verifier = codeVerifier else { return }
-
-        let url = URL(string: "https://accounts.spotify.com/api/token")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
-        let body = [
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": SpotifyConstants.redirectUri,
-            "client_id": SpotifyConstants.clientId,
-            "code_verifier": verifier
-        ]
-        request.httpBody = body.map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? $0.value)" }
-            .joined(separator: "&").data(using: .utf8)
-
-        do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let tokenResponse = try JSONDecoder().decode(SpotifyTokenResponse.self, from: data)
-            await handleTokenResponse(tokenResponse)
-        } catch {
-            print("Token exchange failed: \(error)")
-        }
-    }
-
-    @MainActor
-    private func handleTokenResponse(_ response: SpotifyTokenResponse) {
-        accessToken = response.accessToken
-        if let refresh = response.refreshToken {
-            refreshToken = refresh
-        }
-        tokenExpiration = Date().addingTimeInterval(TimeInterval(response.expiresIn))
-        saveTokens()
-
-        Task {
-            await fetchUserProfile()
-            await fetchUserPlaylists()
-            await fetchUserAlbums()
-            setupWebView()
-            NotificationCenter.default.post(name: NSNotification.Name("SpotifyConnected"), object: nil)
-        }
-    }
-
-    private func validateAndRefreshToken() async {
-        guard let expiration = tokenExpiration else {
-            await MainActor.run { disconnect() }
-            return
-        }
-
-        if Date() >= expiration.addingTimeInterval(-60) {
-            await refreshAccessToken()
-        } else {
-            await MainActor.run {
-                isConnected = true
+        print("[SpotifyService] startAuth called, bridge.isRunning=\(bridge.isRunning)")
+        bridge.start()
+        print("[SpotifyService] bridge.start() done, isRunning=\(bridge.isRunning)")
+        bridge.send(method: "auth_start") { [weak self] result in
+            print("[SpotifyService] auth_start result: \(result)")
+            switch result {
+            case .success(let response):
+                if let dict = response as? [String: Any],
+                   let creds = dict["credentials"] {
+                    // Store credentials for reconnection
+                    if let credsData = try? JSONSerialization.data(withJSONObject: creds) {
+                        UserDefaults.standard.set(credsData, forKey: self?.userDefaultsCredentialsKey ?? "")
+                    }
+                }
+            case .failure(let error):
+                print("[SpotifyService] Auth failed: \(error)")
             }
-            await fetchUserProfile()
-            await fetchUserPlaylists()
-            await fetchUserAlbums()
-            await MainActor.run { setupWebView() }
         }
     }
 
-    private func refreshAccessToken() async {
-        guard let refresh = refreshToken else {
-            await MainActor.run { disconnect() }
-            return
-        }
-
-        let url = URL(string: "https://accounts.spotify.com/api/token")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
-        let body = [
-            "grant_type": "refresh_token",
-            "refresh_token": refresh,
-            "client_id": SpotifyConstants.clientId
-        ]
-        request.httpBody = body.map { "\($0.key)=\($0.value)" }.joined(separator: "&").data(using: .utf8)
-
-        do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let tokenResponse = try JSONDecoder().decode(SpotifyTokenResponse.self, from: data)
-            await handleTokenResponse(tokenResponse)
-        } catch {
-            print("Token refresh failed: \(error)")
-            await MainActor.run { disconnect() }
+    private func startBridgeWithCredentials(_ creds: [String: Any]) {
+        bridge.start()
+        bridge.send(method: "auth_stored", params: ["credentials": creds]) { [weak self] result in
+            if case .failure(let error) = result {
+                print("[SpotifyService] Stored auth failed: \(error)")
+                self?.disconnect()
+            }
         }
     }
 
-    // MARK: - Token Storage
-
-    private func saveTokens() {
-        UserDefaults.standard.set(accessToken, forKey: userDefaultsTokenKey)
-        UserDefaults.standard.set(refreshToken, forKey: userDefaultsRefreshKey)
-        UserDefaults.standard.set(tokenExpiration, forKey: userDefaultsExpirationKey)
-    }
-
-    private func loadTokens() {
-        accessToken = UserDefaults.standard.string(forKey: userDefaultsTokenKey)
-        refreshToken = UserDefaults.standard.string(forKey: userDefaultsRefreshKey)
-        tokenExpiration = UserDefaults.standard.object(forKey: userDefaultsExpirationKey) as? Date
-        isConnected = accessToken != nil
+    private func loadCredentials() -> [String: Any]? {
+        guard let data = UserDefaults.standard.data(forKey: userDefaultsCredentialsKey),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return nil
+        }
+        return json
     }
 
     func disconnect() {
-        accessToken = nil
-        refreshToken = nil
-        tokenExpiration = nil
+        bridge.send(method: "disconnect")
+        bridge.stop()
+
         currentUser = nil
         isConnected = false
         isPlayerReady = false
+        isPlaying = false
         selectedPlaylists = []
         allPlaylists = []
         selectedAlbums = []
         allAlbums = []
-        webView?.stopLoading()
-        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "spotifyBridge")
-        webView = nil
-        webViewWindow?.close()
-        webViewWindow = nil
 
-        UserDefaults.standard.removeObject(forKey: userDefaultsTokenKey)
-        UserDefaults.standard.removeObject(forKey: userDefaultsRefreshKey)
-        UserDefaults.standard.removeObject(forKey: userDefaultsExpirationKey)
+        UserDefaults.standard.removeObject(forKey: userDefaultsCredentialsKey)
         UserDefaults.standard.removeObject(forKey: userDefaultsSelectedPlaylistsKey)
         UserDefaults.standard.removeObject(forKey: userDefaultsSelectedAlbumsKey)
 
@@ -235,87 +163,106 @@ class SpotifyService: NSObject, ObservableObject {
 
     // MARK: - API Calls
 
-    private func fetchUserProfile() async {
-        guard let token = accessToken else { return }
-
-        var request = URLRequest(url: URL(string: "https://api.spotify.com/v1/me")!)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let user = try JSONDecoder().decode(SpotifyUser.self, from: data)
-            await MainActor.run {
-                self.currentUser = user
-                self.isConnected = true
-            }
-        } catch {
-            print("Failed to fetch user profile: \(error)")
-        }
-    }
-
     func fetchUserPlaylists() async {
-        guard let token = accessToken else { return }
-
-        var request = URLRequest(url: URL(string: "https://api.spotify.com/v1/me/playlists?limit=50")!)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let response = try JSONDecoder().decode(SpotifyPlaylistsResponse.self, from: data)
+            let result = try await bridge.send(method: "get_playlists")
+            guard let dict = result as? [String: Any],
+                  let items = dict["playlists"] as? [[String: Any]] else { return }
+
+            let playlists = items.compactMap { item -> SpotifyPlaylist? in
+                guard let id = item["id"] as? String,
+                      let name = item["name"] as? String else { return nil }
+                return SpotifyPlaylist(
+                    id: id,
+                    name: name,
+                    imageUrl: item["imageUrl"] as? String,
+                    trackCount: item["trackCount"] as? Int ?? 0
+                )
+            }
+
             await MainActor.run {
-                self.allPlaylists = response.items
+                self.allPlaylists = playlists
+                if self.selectedPlaylists.isEmpty {
+                    self.selectedPlaylists = playlists
+                    self.saveSelectedPlaylists()
+                    NotificationCenter.default.post(name: NSNotification.Name("SpotifyPlaylistsChanged"), object: nil)
+                }
             }
         } catch {
-            print("Failed to fetch playlists: \(error)")
+            print("[SpotifyService] Failed to fetch playlists: \(error)")
         }
     }
 
     func fetchUserAlbums() async {
-        guard let token = accessToken else { return }
-
-        var request = URLRequest(url: URL(string: "https://api.spotify.com/v1/me/albums?limit=50")!)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let response = try JSONDecoder().decode(SpotifyAlbumsResponse.self, from: data)
+            let result = try await bridge.send(method: "get_saved_albums")
+            guard let dict = result as? [String: Any],
+                  let items = dict["albums"] as? [[String: Any]] else { return }
+
+            let albums = items.compactMap { item -> SpotifyAlbum? in
+                guard let id = item["id"] as? String,
+                      let name = item["name"] as? String else { return nil }
+                return SpotifyAlbum(
+                    id: id,
+                    name: name,
+                    artist: item["artist"] as? String ?? "Unknown Artist",
+                    imageUrl: item["imageUrl"] as? String,
+                    trackCount: item["trackCount"] as? Int ?? 0,
+                    uri: item["uri"] as? String ?? "spotify:album:\(id)"
+                )
+            }
+
             await MainActor.run {
-                self.allAlbums = response.items
+                self.allAlbums = albums
+                if self.selectedAlbums.isEmpty {
+                    self.selectedAlbums = albums
+                    self.saveSelectedAlbums()
+                    NotificationCenter.default.post(name: NSNotification.Name("SpotifyPlaylistsChanged"), object: nil)
+                }
             }
         } catch {
-            print("Failed to fetch albums: \(error)")
+            print("[SpotifyService] Failed to fetch albums: \(error)")
         }
     }
 
     func fetchAlbumTracks(albumId: String) async -> [SpotifyTrack] {
-        guard let token = accessToken else { return [] }
-
-        var request = URLRequest(url: URL(string: "https://api.spotify.com/v1/albums/\(albumId)/tracks?limit=50")!)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let response = try JSONDecoder().decode(SpotifyAlbumTracksResponse.self, from: data)
-            return response.items
+            let result = try await bridge.send(method: "get_album_tracks", params: ["album_id": albumId])
+            guard let dict = result as? [String: Any],
+                  let items = dict["tracks"] as? [[String: Any]] else { return [] }
+            return parseTracksFromBridge(items)
         } catch {
-            print("Failed to fetch album tracks: \(error)")
+            print("[SpotifyService] Failed to fetch album tracks: \(error)")
             return []
         }
     }
 
     func fetchPlaylistTracks(playlistId: String) async -> [SpotifyTrack] {
-        guard let token = accessToken else { return [] }
-
-        var request = URLRequest(url: URL(string: "https://api.spotify.com/v1/playlists/\(playlistId)/tracks?limit=100")!)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let response = try JSONDecoder().decode(SpotifyTracksResponse.self, from: data)
-            return response.items
+            let result = try await bridge.send(method: "get_playlist_tracks", params: ["playlist_id": playlistId])
+            guard let dict = result as? [String: Any],
+                  let items = dict["tracks"] as? [[String: Any]] else { return [] }
+            return parseTracksFromBridge(items)
         } catch {
-            print("Failed to fetch tracks: \(error)")
+            print("[SpotifyService] Failed to fetch playlist tracks: \(error)")
             return []
+        }
+    }
+
+    private func parseTracksFromBridge(_ items: [[String: Any]]) -> [SpotifyTrack] {
+        items.compactMap { item in
+            guard let id = item["id"] as? String,
+                  let uri = item["uri"] as? String,
+                  let name = item["name"] as? String else { return nil }
+            return SpotifyTrack(
+                id: id,
+                uri: uri,
+                name: name,
+                artist: item["artist"] as? String ?? "Unknown Artist",
+                album: item["album"] as? String ?? "",
+                albumImageUrl: item["albumImageUrl"] as? String,
+                durationMs: item["durationMs"] as? Int ?? 0
+            )
         }
     }
 
@@ -377,160 +324,37 @@ class SpotifyService: NSObject, ObservableObject {
         }
     }
 
-    // MARK: - Web Playback SDK
-
-    private var webViewWindow: NSWindow?
-
-    func setupWebView() {
-        guard webView == nil else { return }
-
-        let config = WKWebViewConfiguration()
-        config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-        config.mediaTypesRequiringUserActionForPlayback = []
-
-        let contentController = WKUserContentController()
-        contentController.add(self, name: "spotifyBridge")
-        config.userContentController = contentController
-
-        let wv = WKWebView(frame: NSRect(x: 0, y: 0, width: 1, height: 1), configuration: config)
-        wv.navigationDelegate = self
-        webView = wv
-
-        // WebView needs to be in a window for audio playback
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 1, height: 1),
-            styleMask: [],
-            backing: .buffered,
-            defer: false
-        )
-        window.contentView = wv
-        window.orderOut(nil)
-        webViewWindow = window
-
-        guard let htmlPath = Bundle.main.path(forResource: "spotify-player", ofType: "html"),
-              let htmlContent = try? String(contentsOfFile: htmlPath, encoding: .utf8) else {
-            print("Failed to load spotify-player.html")
-            return
-        }
-
-        let htmlWithToken = htmlContent.replacingOccurrences(of: "{{ACCESS_TOKEN}}", with: accessToken ?? "")
-        wv.loadHTMLString(htmlWithToken, baseURL: nil)
-    }
-
     // MARK: - Playback Controls
 
     func play(uri: String) {
-        let js = "playTrack('\(uri)')"
-        webView?.evaluateJavaScript(js) { _, error in
-            if let error = error {
-                print("Play error: \(error)")
-            }
-        }
+        bridge.send(method: "play", params: ["uri": uri])
     }
 
     func playTrackInContext(contextUri: String, trackIndex: Int) {
-        let js = "playContext('\(contextUri)', \(trackIndex))"
-        webView?.evaluateJavaScript(js) { _, error in
-            if let error = error {
-                print("Play context error: \(error)")
-            }
-        }
+        bridge.send(method: "play_context", params: ["context_uri": contextUri, "offset": trackIndex])
     }
 
     func togglePlayPause() {
-        let js = "togglePlayPause()"
-        webView?.evaluateJavaScript(js, completionHandler: nil)
+        if isPlaying {
+            bridge.send(method: "pause")
+        } else {
+            bridge.send(method: "resume")
+        }
     }
 
     func nextTrack() {
-        let js = "nextTrack()"
-        webView?.evaluateJavaScript(js, completionHandler: nil)
+        // Handled by SongViewModel via SpotifyPlaybackProvider
     }
 
     func previousTrack() {
-        let js = "previousTrack()"
-        webView?.evaluateJavaScript(js, completionHandler: nil)
+        // Handled by SongViewModel via SpotifyPlaybackProvider
     }
 
     func seek(positionMs: Int) {
-        let js = "seek(\(positionMs))"
-        webView?.evaluateJavaScript(js, completionHandler: nil)
+        bridge.send(method: "seek", params: ["position_ms": positionMs])
     }
 
     func setVolume(_ volume: Float) {
-        let js = "setVolume(\(volume))"
-        webView?.evaluateJavaScript(js, completionHandler: nil)
-    }
-
-}
-
-// MARK: - WKScriptMessageHandler
-
-extension SpotifyService: WKScriptMessageHandler {
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard let dict = message.body as? [String: Any],
-              let event = dict["event"] as? String else { return }
-
-        DispatchQueue.main.async {
-            switch event {
-            case "ready":
-                self.isPlayerReady = true
-                print("Spotify player ready")
-
-            case "not_ready":
-                self.isPlayerReady = false
-
-            case "state_changed":
-                if let paused = dict["paused"] as? Bool {
-                    self.isPlaying = !paused
-                }
-                if let position = dict["position"] as? Int {
-                    self.currentTrackPosition = TimeInterval(position) / 1000
-                }
-                if let duration = dict["duration"] as? Int {
-                    self.currentTrackDuration = TimeInterval(duration) / 1000
-                }
-                // Track info
-                self.currentTrackId = dict["trackId"] as? String
-                self.currentTrackName = dict["trackName"] as? String
-                self.currentTrackArtist = dict["trackArtist"] as? String
-                self.currentTrackAlbum = dict["trackAlbum"] as? String
-                self.currentTrackImageUrl = dict["trackImage"] as? String
-
-                let trackChanged = dict["trackChanged"] as? Bool ?? false
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("SpotifyStateChanged"),
-                    object: nil,
-                    userInfo: ["trackChanged": trackChanged]
-                )
-
-            case "position_update":
-                if let position = dict["position"] as? Int {
-                    self.currentTrackPosition = TimeInterval(position) / 1000
-                }
-                if let duration = dict["duration"] as? Int {
-                    self.currentTrackDuration = TimeInterval(duration) / 1000
-                }
-                NotificationCenter.default.post(name: NSNotification.Name("SpotifyStateChanged"), object: nil)
-
-            case "error":
-                print("Spotify error: \(dict["message"] ?? "unknown")")
-
-            default:
-                break
-            }
-        }
-    }
-}
-
-// MARK: - WKNavigationDelegate
-
-extension SpotifyService: WKNavigationDelegate {
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        print("WebView finished loading")
-    }
-
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        print("WebView failed: \(error)")
+        bridge.send(method: "set_volume", params: ["volume": volume])
     }
 }

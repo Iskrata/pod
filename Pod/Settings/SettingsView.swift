@@ -14,13 +14,13 @@ struct SettingsView: View {
                 .tag("General")
                 .tabItem { Label("General", systemImage: "gearshape.fill") }
 
-            RadioSettings()
-                .tag("Radio")
-                .tabItem { Label("Radio", systemImage: "radio") }
-
             SpotifySettings()
                 .tag("Spotify")
                 .tabItem { Label("Spotify", systemImage: "music.note") }
+
+            RadioSettings()
+                .tag("Radio")
+                .tabItem { Label("Radio", systemImage: "radio") }
 
             ContactUs()
                 .tag("Help")

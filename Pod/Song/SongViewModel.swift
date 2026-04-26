@@ -67,9 +67,12 @@ class SongViewModel: ProtocolView {
             self.isPlaying = service.isPlaying
             self.duration = spotifyDuration
 
-            // Sync time from Spotify
-            if abs(self.currentTime - spotifyTime) > 2.0 {
-                self.currentTime = spotifyTime
+            // Sync time from Spotify only on significant drift (>3s)
+            // Local timer is primary source, Spotify corrects drift
+            if spotifyTime > 1.0 {
+                if abs(self.currentTime - spotifyTime) > 3.0 {
+                    self.currentTime = spotifyTime
+                }
             }
 
             // Manage timer based on play state
@@ -429,11 +432,13 @@ class SongViewModel: ProtocolView {
     
     func nextClick() {
         if isSpotifyPlayback {
+            guard !spotifyTracks.isEmpty else { return }
             currentSpotifyTrackIndex = (currentSpotifyTrackIndex + 1) % spotifyTracks.count
             playSpotifyTrack(at: currentSpotifyTrackIndex)
             return
         }
         if isRadioStation { return }
+        guard !songs.isEmpty else { return }
         currentSong = (currentSong + 1) % songs.count
         self.loadAudioFile(songs[currentSong].pathToAudioFile)
         self.playPauseClick()
@@ -441,11 +446,13 @@ class SongViewModel: ProtocolView {
 
     func prevClick() {
         if isSpotifyPlayback {
+            guard !spotifyTracks.isEmpty else { return }
             currentSpotifyTrackIndex = (currentSpotifyTrackIndex - 1 + spotifyTracks.count) % spotifyTracks.count
             playSpotifyTrack(at: currentSpotifyTrackIndex)
             return
         }
         if isRadioStation { return }
+        guard !songs.isEmpty else { return }
         currentSong = (currentSong - 1 + songs.count) % songs.count
         self.loadAudioFile(songs[currentSong].pathToAudioFile)
         self.playPauseClick()
@@ -495,7 +502,7 @@ class SongViewModel: ProtocolView {
             let newPos = max(0, currentTime - 5)
             SpotifyService.shared.seek(positionMs: Int(newPos * 1000))
             currentTime = newPos
-            hapticManager.perform(.levelChange, performanceTime: .default)
+            hapticManager.perform(.generic, performanceTime: .now)
             return
         }
         if isRadioStation { return }
@@ -505,7 +512,7 @@ class SongViewModel: ProtocolView {
             player.currentTime -= 5
             currentTime -= 5
             if currentTime < 0 { currentTime = 0 }
-            hapticManager.perform(.levelChange, performanceTime: .default)
+            hapticManager.perform(.generic, performanceTime: .now)
         }
     }
 
@@ -514,7 +521,7 @@ class SongViewModel: ProtocolView {
             let newPos = min(duration, currentTime + 5)
             SpotifyService.shared.seek(positionMs: Int(newPos * 1000))
             currentTime = newPos
-            hapticManager.perform(.levelChange, performanceTime: .default)
+            hapticManager.perform(.generic, performanceTime: .now)
             return
         }
         if isRadioStation { return }
@@ -524,7 +531,7 @@ class SongViewModel: ProtocolView {
             player.currentTime += 5
             currentTime += 5
             if currentTime > duration { currentTime = duration }
-            hapticManager.perform(.levelChange, performanceTime: .default)
+            hapticManager.perform(.generic, performanceTime: .now)
         }
     }
 

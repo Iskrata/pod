@@ -58,12 +58,46 @@ class AlbumViewModel: ProtocolView {
             name: NSNotification.Name("SpotifyPlaylistsChanged"),
             object: nil
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(onSpotifyConnected),
+            name: NSNotification.Name("SpotifyConnected"),
+            object: nil
+        )
+
+        GlobalState.shared.$searchQuery
+            .sink { [weak self] query in
+                self?.applySearchFilter(query)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func applySearchFilter(_ query: String) {
+        if query.isEmpty {
+            applyFilter()
+        } else {
+            applyFilter()
+            filteredAlbums = filteredAlbums.filter {
+                $0.name.localizedCaseInsensitiveContains(query)
+            }
+        }
+        activeIndex = 0
+        scrollOffset = 0
     }
     
     @objc private func reloadFavoriteStations() {
         DispatchQueue.main.async { [weak self] in
             self?.albums.removeAll { $0.isRadioStation }
             self?.loadFavoriteRadioStations()
+        }
+    }
+
+    @objc private func onSpotifyConnected() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            self?.albums.removeAll { $0.isSpotifyPlaylist || $0.isSpotifyAlbum }
+            self?.loadSpotifyPlaylists()
+            self?.loadSpotifyAlbums()
         }
     }
 
@@ -77,7 +111,10 @@ class AlbumViewModel: ProtocolView {
     
     func sortAlbums() {
         albums.sort { album1, album2 in
-            // Priority: albums with artwork > albums without > "Unknown album"
+            // Spotify playlists before Spotify albums
+            if album1.isSpotifyPlaylist != album2.isSpotifyPlaylist { return album1.isSpotifyPlaylist }
+            if album1.isSpotifyAlbum != album2.isSpotifyAlbum { return album1.isSpotifyAlbum }
+
             let hasArt1 = album1.coverImage != nil || album1.spotifyImageUrl != nil
             let hasArt2 = album2.coverImage != nil || album2.spotifyImageUrl != nil
             let isUnknown1 = album1.name == "Unknown album"
@@ -90,6 +127,11 @@ class AlbumViewModel: ProtocolView {
     }
 
     func applyFilter() {
+        applyFilterKeepIndex()
+        activeIndex = 0
+    }
+
+    private func applyFilterKeepIndex() {
         guard let filter = GlobalState.shared.sourceFilter else {
             filteredAlbums = albums
             return
@@ -102,7 +144,9 @@ class AlbumViewModel: ProtocolView {
         case .local:
             filteredAlbums = albums.filter { !$0.isRadioStation && !$0.isSpotifyPlaylist && !$0.isSpotifyAlbum }
         }
-        activeIndex = 0
+        if activeIndex >= filteredAlbums.count {
+            activeIndex = max(0, filteredAlbums.count - 1)
+        }
     }
     
     func loadDirectories() {
@@ -193,6 +237,7 @@ class AlbumViewModel: ProtocolView {
         }
         albums.append(contentsOf: spotifyPlaylists)
         sortAlbums()
+        applyFilterKeepIndex()
     }
 
     private func loadSpotifyAlbums() {
@@ -209,6 +254,7 @@ class AlbumViewModel: ProtocolView {
         }
         albums.append(contentsOf: spotifyAlbums)
         sortAlbums()
+        applyFilterKeepIndex()
     }
     
     func nextClick() {
@@ -223,12 +269,15 @@ class AlbumViewModel: ProtocolView {
     }
     
     func menuClick() {
+        GlobalState.shared.searchQuery = ""
         GlobalState.shared.activeView = .mainMenu
     }
     
     func middleClick() {
         guard !filteredAlbums.isEmpty else { return }
+        GlobalState.shared.searchQuery = ""
         let selectedAlbum = filteredAlbums[activeIndex]
+        print("[AlbumVM] middleClick idx=\(activeIndex) name=\(selectedAlbum.name) isPlaylist=\(selectedAlbum.isSpotifyPlaylist) isAlbum=\(selectedAlbum.isSpotifyAlbum)")
 
         if selectedAlbum.isRadioStation {
             if let streamUrl = selectedAlbum.streamUrl {
@@ -264,7 +313,7 @@ class AlbumViewModel: ProtocolView {
         if filteredAlbums.isEmpty { return }
         if activeIndex > 0 {
             activeIndex -= 1
-            hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
+            hapticManager.perform(.generic, performanceTime: .now)
         }
         GlobalState.shared.selectedAlbumDir = filteredAlbums[activeIndex].path
     }
@@ -273,7 +322,7 @@ class AlbumViewModel: ProtocolView {
         if filteredAlbums.isEmpty { return }
         if activeIndex < filteredAlbums.count - 1 {
             activeIndex += 1
-            hapticManager.perform(.levelChange, performanceTime: .drawCompleted)
+            hapticManager.perform(.generic, performanceTime: .now)
         }
         GlobalState.shared.selectedAlbumDir = filteredAlbums[activeIndex].path
     }

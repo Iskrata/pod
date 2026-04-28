@@ -178,37 +178,18 @@ class SpotifyBridge: ObservableObject {
     // MARK: - Binary Location
 
     private func findBridgeBinary() -> String {
-        // 1. Check app bundle Resources
         if let bundlePath = Bundle.main.path(forResource: "pod-spotify-bridge", ofType: nil) {
             return bundlePath
         }
 
-        // 2. Check next to the app
-        let appDir = Bundle.main.bundleURL.deletingLastPathComponent()
-        let adjacentPath = appDir.appendingPathComponent("pod-spotify-bridge").path
-        if FileManager.default.fileExists(atPath: adjacentPath) {
-            return adjacentPath
-        }
-
-        // 3. Check known dev path
-        let devPath = "/Users/iskrata/Developer/pod/pod-spotify-bridge/target/release/pod-spotify-bridge"
-        if FileManager.default.fileExists(atPath: devPath) {
-            return devPath
-        }
-
-        // 4. Check project build output (development)
+        // Dev fallback: source tree relative to this file
         let projectPath = URL(fileURLWithPath: #file)
             .deletingLastPathComponent() // Spotify/
             .deletingLastPathComponent() // Pod/
-            .deletingLastPathComponent() // Pod/
+            .deletingLastPathComponent() // pod/
             .appendingPathComponent("pod-spotify-bridge/target/release/pod-spotify-bridge")
             .path
-        if FileManager.default.fileExists(atPath: projectPath) {
-            return projectPath
-        }
-
-        // 5. Fallback: relative to working directory
-        return "pod-spotify-bridge/target/release/pod-spotify-bridge"
+        return projectPath
     }
 
     // MARK: - Error Type

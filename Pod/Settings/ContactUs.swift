@@ -23,7 +23,7 @@ struct ContactUs: View {
 
                 HStack(spacing: 16) {
                     ActionCard(icon: "envelope.fill", title: "Email") {
-                        openURL("mailto:iskren.alexandrov@gmail.com?subject=Pod%20Feedback")
+                        openURL("mailto:support@desktopipod.com?subject=Pod%20Feedback")
                     }
                     ActionCard(icon: "bird.fill", title: "Twitter") {
                         openURL("https://x.com/iskrataa")

@@ -31,7 +31,7 @@ Cut a new Pod release: bump versions, archive, notarize, sign with Sparkle, push
 - **Notarytool profile**: `AC_PASSWORD` stored in keychain. Apple ID `iskrenalexandrov@gmail.com`, team `B7949NL6NG`. App-specific password generated at System Settings → Sign-In and Security → App-Specific Passwords.
 - **`create-dmg`**: required for the drag-to-Applications dmg. `brew install create-dmg`.
 - **Sandbox**: disabled (1.8.2+). Sandboxing in Pod broke Sparkle's installer XPC chain and blocked the Rust bridge binary; for a Developer ID-distributed indie app it's not worth the complexity. If you ever re-enable it, you'll need mach-lookup entitlements for `<bundleid>-spki/spks/spkp` and to manually sign Sparkle's XPC services.
-- **Spotify bridge**: `pod-spotify-bridge` (Rust). `release.sh` runs `cargo build --release` and embeds the binary at `Pod.app/Contents/Resources/pod-spotify-bridge`, code-signed with the same Developer ID. `SpotifyBridge.findBridgeBinary()` finds it via `Bundle.main.path(forResource:ofType:)`.
+- **Spotify bridge**: `pod-spotify-bridge` (Rust). `release.sh` builds **universal** (both `aarch64-apple-darwin` and `x86_64-apple-darwin` cargo targets, then `lipo -create`), embeds at `Pod.app/Contents/Resources/pod-spotify-bridge`, code-signed with the same Developer ID. `SpotifyBridge.findBridgeBinary()` finds it via `Bundle.main.path(forResource:ofType:)`. **Both rust targets must be installed** (`rustup target add x86_64-apple-darwin aarch64-apple-darwin`) — Pod itself is already universal via Xcode's `ARCHS` setting, so the dmg ships single universal artifact for both Apple Silicon and Intel.
 
 ## Steps to ship a new version
 

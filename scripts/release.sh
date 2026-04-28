@@ -61,12 +61,14 @@ xcodebuild -exportArchive -archivePath "$ARCHIVE" \
 APP="$EXPORT/Pod.app"
 [[ -d "$APP" ]] || { echo "Pod.app missing in $EXPORT"; exit 1; }
 
-echo "▶ Building & embedding pod-spotify-bridge"
+echo "▶ Building universal pod-spotify-bridge (arm64 + x86_64)"
 BRIDGE_SRC="$ROOT/pod-spotify-bridge"
-(cd "$BRIDGE_SRC" && cargo build --release) | tail -3
-BRIDGE_BIN="$BRIDGE_SRC/target/release/pod-spotify-bridge"
-[[ -x "$BRIDGE_BIN" ]] || { echo "bridge binary missing at $BRIDGE_BIN"; exit 1; }
-cp "$BRIDGE_BIN" "$APP/Contents/Resources/pod-spotify-bridge"
+(cd "$BRIDGE_SRC" && cargo build --release --target aarch64-apple-darwin && cargo build --release --target x86_64-apple-darwin) | tail -5
+BRIDGE_ARM="$BRIDGE_SRC/target/aarch64-apple-darwin/release/pod-spotify-bridge"
+BRIDGE_X86="$BRIDGE_SRC/target/x86_64-apple-darwin/release/pod-spotify-bridge"
+[[ -x "$BRIDGE_ARM" && -x "$BRIDGE_X86" ]] || { echo "bridge slices missing"; exit 1; }
+lipo -create "$BRIDGE_ARM" "$BRIDGE_X86" -output "$APP/Contents/Resources/pod-spotify-bridge"
+lipo -info "$APP/Contents/Resources/pod-spotify-bridge"
 SIGN_IDENTITY=$(security find-identity -v -p codesigning | awk -F'"' '/Developer ID Application/{print $2; exit}')
 [[ -n "$SIGN_IDENTITY" ]] || { echo "Developer ID Application identity not found"; exit 1; }
 codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP/Contents/Resources/pod-spotify-bridge"

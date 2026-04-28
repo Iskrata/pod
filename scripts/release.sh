@@ -61,6 +61,17 @@ xcodebuild -exportArchive -archivePath "$ARCHIVE" \
 APP="$EXPORT/Pod.app"
 [[ -d "$APP" ]] || { echo "Pod.app missing in $EXPORT"; exit 1; }
 
+echo "▶ Building & embedding pod-spotify-bridge"
+BRIDGE_SRC="$ROOT/pod-spotify-bridge"
+(cd "$BRIDGE_SRC" && cargo build --release) | tail -3
+BRIDGE_BIN="$BRIDGE_SRC/target/release/pod-spotify-bridge"
+[[ -x "$BRIDGE_BIN" ]] || { echo "bridge binary missing at $BRIDGE_BIN"; exit 1; }
+cp "$BRIDGE_BIN" "$APP/Contents/Resources/pod-spotify-bridge"
+SIGN_IDENTITY=$(security find-identity -v -p codesigning | awk -F'"' '/Developer ID Application/{print $2; exit}')
+[[ -n "$SIGN_IDENTITY" ]] || { echo "Developer ID Application identity not found"; exit 1; }
+codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP/Contents/Resources/pod-spotify-bridge"
+codesign --force --options runtime --timestamp --deep --sign "$SIGN_IDENTITY" --entitlements "$ROOT/Pod/Pod.entitlements" "$APP"
+
 echo "▶ Zipping for notarization"
 ditto -c -k --keepParent "$APP" "$ZIP_PATH"
 

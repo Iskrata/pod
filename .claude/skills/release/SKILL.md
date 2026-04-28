@@ -30,6 +30,8 @@ Cut a new Pod release: bump versions, archive, notarize, sign with Sparkle, push
 - **Sparkle EdDSA private key**: in login keychain (item: `Private key for signing Sparkle updates`). Public counterpart `GjgBpBs3vAJI0W4Kv3Vz7qgD4hp2uFqnS/iOElRmn68=` is baked into `Pod/Info.plist`. **If this Mac is ever wiped, all Sparkle users are stranded** — back up the private key (Keychain Access → export `.p12`).
 - **Notarytool profile**: `AC_PASSWORD` stored in keychain. Apple ID `iskrenalexandrov@gmail.com`, team `B7949NL6NG`. App-specific password generated at System Settings → Sign-In and Security → App-Specific Passwords.
 - **`create-dmg`**: required for the drag-to-Applications dmg. `brew install create-dmg`.
+- **Sandbox**: disabled (1.8.2+). Sandboxing in Pod broke Sparkle's installer XPC chain and blocked the Rust bridge binary; for a Developer ID-distributed indie app it's not worth the complexity. If you ever re-enable it, you'll need mach-lookup entitlements for `<bundleid>-spki/spks/spkp` and to manually sign Sparkle's XPC services.
+- **Spotify bridge**: `pod-spotify-bridge` (Rust). `release.sh` runs `cargo build --release` and embeds the binary at `Pod.app/Contents/Resources/pod-spotify-bridge`, code-signed with the same Developer ID. `SpotifyBridge.findBridgeBinary()` finds it via `Bundle.main.path(forResource:ofType:)`.
 
 ## Steps to ship a new version
 

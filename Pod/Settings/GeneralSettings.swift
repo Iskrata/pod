@@ -31,6 +31,14 @@ struct GeneralSettings: View {
                     }
                 }
 
+                SettingsSection(title: "Feedback", icon: "speaker.wave.2") {
+                    ToggleRow(
+                        "Sound Effects",
+                        subtitle: "Subtle clicks on wheel and buttons",
+                        isOn: $globalState.soundEnabled
+                    )
+                }
+
                 Spacer()
 
                 footer

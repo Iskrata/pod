@@ -226,25 +226,49 @@ class SpotifyService: NSObject, ObservableObject {
     }
 
     func fetchAlbumTracks(albumId: String) async -> [SpotifyTrack] {
+        NSLog("[SpotifyService] fetchAlbumTracks albumId=\(albumId)")
         do {
             let result = try await bridge.send(method: "get_album_tracks", params: ["album_id": albumId])
-            guard let dict = result as? [String: Any],
-                  let items = dict["tracks"] as? [[String: Any]] else { return [] }
-            return parseTracksFromBridge(items)
+            guard let dict = result as? [String: Any] else {
+                NSLog("[SpotifyService] fetchAlbumTracks: result is not dict: \(result)")
+                return []
+            }
+            guard let items = dict["tracks"] as? [[String: Any]] else {
+                NSLog("[SpotifyService] fetchAlbumTracks: no 'tracks' key in dict keys=\(Array(dict.keys))")
+                return []
+            }
+            let tracks = parseTracksFromBridge(items)
+            NSLog("[SpotifyService] fetchAlbumTracks albumId=\(albumId) returned \(tracks.count) tracks")
+            if let raw = items.first {
+                NSLog("[SpotifyService]   raw first item keys=\(Array(raw.keys)) durationMs=\(raw["durationMs"] ?? "nil")")
+            }
+            for (i, t) in tracks.prefix(3).enumerated() {
+                NSLog("[SpotifyService]   track #\(i) name=\(t.name) uri=\(t.uri) durationMs=\(t.durationMs)")
+            }
+            return tracks
         } catch {
-            print("[SpotifyService] Failed to fetch album tracks: \(error)")
+            NSLog("[SpotifyService] Failed to fetch album tracks: \(error)")
             return []
         }
     }
 
     func fetchPlaylistTracks(playlistId: String) async -> [SpotifyTrack] {
+        NSLog("[SpotifyService] fetchPlaylistTracks playlistId=\(playlistId)")
         do {
             let result = try await bridge.send(method: "get_playlist_tracks", params: ["playlist_id": playlistId])
             guard let dict = result as? [String: Any],
                   let items = dict["tracks"] as? [[String: Any]] else { return [] }
-            return parseTracksFromBridge(items)
+            let tracks = parseTracksFromBridge(items)
+            NSLog("[SpotifyService] fetchPlaylistTracks returned \(tracks.count) tracks")
+            if let raw = items.first {
+                NSLog("[SpotifyService]   raw first item keys=\(Array(raw.keys)) durationMs=\(raw["durationMs"] ?? "nil")")
+            }
+            for (i, t) in tracks.prefix(3).enumerated() {
+                NSLog("[SpotifyService]   track #\(i) name=\(t.name) uri=\(t.uri) durationMs=\(t.durationMs)")
+            }
+            return tracks
         } catch {
-            print("[SpotifyService] Failed to fetch playlist tracks: \(error)")
+            NSLog("[SpotifyService] Failed to fetch playlist tracks: \(error)")
             return []
         }
     }
@@ -254,6 +278,12 @@ class SpotifyService: NSObject, ObservableObject {
             guard let id = item["id"] as? String,
                   let uri = item["uri"] as? String,
                   let name = item["name"] as? String else { return nil }
+            let durationMs: Int = {
+                if let v = item["durationMs"] as? Int { return v }
+                if let v = item["durationMs"] as? NSNumber { return v.intValue }
+                if let v = item["durationMs"] as? Double { return Int(v) }
+                return 0
+            }()
             return SpotifyTrack(
                 id: id,
                 uri: uri,
@@ -261,7 +291,7 @@ class SpotifyService: NSObject, ObservableObject {
                 artist: item["artist"] as? String ?? "Unknown Artist",
                 album: item["album"] as? String ?? "",
                 albumImageUrl: item["albumImageUrl"] as? String,
-                durationMs: item["durationMs"] as? Int ?? 0
+                durationMs: durationMs
             )
         }
     }
@@ -327,6 +357,7 @@ class SpotifyService: NSObject, ObservableObject {
     // MARK: - Playback Controls
 
     func play(uri: String) {
+        NSLog("[SpotifyService] play uri=\(uri)")
         bridge.send(method: "play", params: ["uri": uri])
     }
 

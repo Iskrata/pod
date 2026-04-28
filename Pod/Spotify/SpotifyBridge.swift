@@ -103,6 +103,9 @@ class SpotifyBridge: ObservableObject {
         }
 
         let line = jsonString + "\n"
+        if method != "get_state" && method != "get_position" {
+            NSLog("[Bridge→] \(jsonString)")
+        }
         stdinPipe?.fileHandleForWriting.write(line.data(using: .utf8)!)
     }
 
@@ -145,6 +148,21 @@ class SpotifyBridge: ObservableObject {
     }
 
     private func handleMessage(_ json: [String: Any]) {
+        // Log responses (truncate large arrays)
+        if let id = json["id"] {
+            if let result = json["result"] as? [String: Any] {
+                let summary = result.mapValues { v -> String in
+                    if let arr = v as? [Any] { return "[\(arr.count) items]" }
+                    return "\(v)".prefix(80) + ""
+                }
+                NSLog("[Bridge←] id=\(id) result=\(summary)")
+            } else if let err = json["error"] {
+                NSLog("[Bridge←] id=\(id) error=\(err)")
+            }
+        } else if let event = json["event"] as? String, event != "player_state" {
+            NSLog("[Bridge← evt] \(event)")
+        }
+
         // Response to a request
         if let id = json["id"] as? UInt64, let callback = pendingRequests.removeValue(forKey: id) {
             if let error = json["error"] as? String {

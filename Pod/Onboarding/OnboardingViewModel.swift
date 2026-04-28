@@ -8,62 +8,147 @@
 import Foundation
 import SwiftUI
 
+enum OnboardingStep: Int, CaseIterable {
+    case welcome
+    case rotate
+    case menu
+    case skip
+    case playPause
+    case select
+    case music
+    case spotify
+    case radio
+    case ready
+}
+
 class OnboardingViewModel: ProtocolView {
     var view: AnyView {
-           AnyView(Onboarding(viewModel: self))
-       }
-    
-    @Published var activeScreen: Int = 0
+        AnyView(Onboarding(viewModel: self))
+    }
+
+    @Published var step: OnboardingStep = .welcome
     @Published var hasScrolledUp = false
     @Published var hasScrolledDown = false
+    @Published var pressedPrev = false
+    @Published var pressedNext = false
+
     private let hapticManager = NSHapticFeedbackManager.defaultPerformer
-    
-    func inc() {
-        if (self.activeScreen < 4) {
-            if self.activeScreen == 1 && !(hasScrolledUp && hasScrolledDown) {
-                return
-            }
-            self.activeScreen += 1
+
+    func applyHighlight() {
+        switch step {
+        case .welcome:   GlobalState.shared.highlightedWheelControl = .middle
+        case .rotate:    GlobalState.shared.highlightedWheelControl = .ring
+        case .menu:      GlobalState.shared.highlightedWheelControl = .menu
+        case .skip:      GlobalState.shared.highlightedWheelControl = .prev
+        case .playPause: GlobalState.shared.highlightedWheelControl = .playPause
+        case .select:    GlobalState.shared.highlightedWheelControl = .middle
+        case .music, .spotify, .radio, .ready:
+            GlobalState.shared.highlightedWheelControl = .middle
+        }
+    }
+
+    func advance() {
+        if let next = OnboardingStep(rawValue: step.rawValue + 1) {
+            step = next
+            applyHighlight()
         } else {
             UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+            GlobalState.shared.highlightedWheelControl = nil
             GlobalState.shared.activeView = .mainMenu
         }
     }
 
-    func nextClick() {
-        inc()
-    }
-    
-    func prevClick() {
-        if (self.activeScreen - 1 > 0) {
-            self.activeScreen -= 1
+    func retreat() {
+        if let prev = OnboardingStep(rawValue: step.rawValue - 1), step != .welcome {
+            step = prev
+            applyHighlight()
         }
     }
-    
-    func playPauseClick() {
-        inc()
-    }
-    
-    func middleClick() {
-        inc()
-    }
-    
+
+    // MARK: - Wheel inputs
+
     func wheelUp() {
-        self.hapticManager.perform(.generic, performanceTime: .now)
-        if self.activeScreen == 1 {
+        hapticManager.perform(.generic, performanceTime: .now)
+        if step == .rotate {
             hasScrolledUp = true
+            tryAdvanceRotate()
         }
     }
-    
+
     func wheelDown() {
-        self.hapticManager.perform(.generic, performanceTime: .now)
-        if self.activeScreen == 1 {
+        hapticManager.perform(.generic, performanceTime: .now)
+        if step == .rotate {
             hasScrolledDown = true
+            tryAdvanceRotate()
         }
     }
-    
-    func menuClick() {
-        inc()
+
+    private func tryAdvanceRotate() {
+        guard hasScrolledUp && hasScrolledDown else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self, self.step == .rotate else { return }
+            self.advance()
+        }
     }
-    
+
+    func menuClick() {
+        switch step {
+        case .menu:
+            advance()
+        case .spotify, .radio, .music, .ready, .select, .playPause, .skip, .rotate:
+            retreat()
+        case .welcome:
+            break
+        }
+    }
+
+    func nextClick() {
+        if step == .skip {
+            pressedNext = true
+            updateSkipHighlight()
+            tryAdvanceSkip()
+        }
+    }
+
+    func prevClick() {
+        if step == .skip {
+            pressedPrev = true
+            updateSkipHighlight()
+            tryAdvanceSkip()
+        }
+    }
+
+    private func updateSkipHighlight() {
+        if !pressedPrev {
+            GlobalState.shared.highlightedWheelControl = .prev
+        } else if !pressedNext {
+            GlobalState.shared.highlightedWheelControl = .next
+        }
+    }
+
+    private func tryAdvanceSkip() {
+        guard pressedPrev && pressedNext else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self, self.step == .skip else { return }
+            self.advance()
+        }
+    }
+
+    func playPauseClick() {
+        if step == .playPause {
+            advance()
+        }
+    }
+
+    func middleClick() {
+        switch step {
+        case .rotate:
+            // require both rotation directions before allowing skip
+            if hasScrolledUp && hasScrolledDown { advance() }
+        case .skip:
+            if pressedPrev && pressedNext { advance() }
+        default:
+            advance()
+        }
+    }
 }

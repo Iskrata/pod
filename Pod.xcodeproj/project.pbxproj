@@ -27,6 +27,7 @@
 		B19F79682C30125400411F62 /* ProtocolViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F79672C30125400411F62 /* ProtocolViewModel.swift */; };
 		B19F796A2C3025F100411F62 /* GlobalState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19F79692C3025F100411F62 /* GlobalState.swift */; };
 		B1BATT012D51000000000001 /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BATT002D51000000000001 /* BatteryMonitor.swift */; };
+		B1SOUND012D51000000000001 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1SOUND002D51000000000001 /* SoundManager.swift */; };
 		B1BBDD2A2C26C37F00C062D8 /* PodApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD292C26C37F00C062D8 /* PodApp.swift */; };
 		B1BBDD2C2C26C37F00C062D8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BBDD2B2C26C37F00C062D8 /* ContentView.swift */; };
 		B1BBDD2E2C26C38000C062D8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1BBDD2D2C26C38000C062D8 /* Assets.xcassets */; };
@@ -68,6 +69,7 @@
 		B19F79672C30125400411F62 /* ProtocolViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolViewModel.swift; sourceTree = "<group>"; };
 		B19F79692C3025F100411F62 /* GlobalState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalState.swift; sourceTree = "<group>"; };
 		B1BATT002D51000000000001 /* BatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryMonitor.swift; sourceTree = "<group>"; };
+		B1SOUND002D51000000000001 /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
 		B1BBDD262C26C37F00C062D8 /* Pod.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pod.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1BBDD292C26C37F00C062D8 /* PodApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodApp.swift; sourceTree = "<group>"; };
 		B1BBDD2B2C26C37F00C062D8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -205,6 +207,7 @@
 				B19F79692C3025F100411F62 /* GlobalState.swift */,
 				B129C74C2C33E9E400E185C8 /* HomeDirectory.swift */,
 				B1BATT002D51000000000001 /* BatteryMonitor.swift */,
+				B1SOUND002D51000000000001 /* SoundManager.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -340,6 +343,7 @@
 				B19F79602C2FFD3900411F62 /* AlbumView.swift in Sources */,
 				B19F796A2C3025F100411F62 /* GlobalState.swift in Sources */,
 				B1BATT012D51000000000001 /* BatteryMonitor.swift in Sources */,
+				B1SOUND012D51000000000001 /* SoundManager.swift in Sources */,
 				B1BBDD2C2C26C37F00C062D8 /* ContentView.swift in Sources */,
 				B19420FE2C3BDC7B00C918B5 /* Onboarding.swift in Sources */,
 				B1BBDD2A2C26C37F00C062D8 /* PodApp.swift in Sources */,

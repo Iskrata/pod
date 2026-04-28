@@ -6,18 +6,31 @@
 //
 import SwiftUI
 
+enum WheelControl: Equatable {
+    case ring
+    case menu
+    case prev
+    case next
+    case playPause
+    case middle
+}
+
 class GlobalState: ObservableObject {
     static let shared = GlobalState()
+    @Published var highlightedWheelControl: WheelControl? = nil
     
     private let ONBOARDING_VERSION = "1.1"
     
     var songViewModel = SongViewModel()
     lazy var albumViewModel = AlbumViewModel()
     lazy var mainMenuViewModel = MainMenuViewModel()
+    lazy var onboardingViewModel = OnboardingViewModel()
     var selectedAlbumDir: String = ""
 
     @Published var sourceFilter: SourceFilter?
     @Published var searchQuery: String = ""
+    @Published var shouldOpenSettings: Bool = false
+    @Published var preferredSettingsTab: String? = nil
     
     private init() {
         let savedVersion = UserDefaults.standard.string(forKey: "onboardingVersion")
@@ -43,8 +56,20 @@ class GlobalState: ObservableObject {
         }
     }
     
-    @Published var activeView: Screen = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? .mainMenu : .onboarding
+    @Published var activeView: Screen = UserDefaults.standard.bool(forKey: "hasLaunchedBefore") ? .mainMenu : .onboarding {
+        didSet {
+            if activeView != .onboarding {
+                highlightedWheelControl = nil
+            }
+        }
+    }
     
+    @Published var soundEnabled: Bool = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true {
+        didSet {
+            UserDefaults.standard.set(soundEnabled, forKey: "soundEnabled")
+        }
+    }
+
     @Published var appearance: String = UserDefaults.standard.string(forKey: "appearance") ?? "Light" {
         didSet {
             UserDefaults.standard.set(appearance, forKey: "appearance")

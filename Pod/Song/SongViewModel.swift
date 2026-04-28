@@ -65,7 +65,11 @@ class SongViewModel: ProtocolView {
             let spotifyDuration = service.currentTrackDuration
 
             self.isPlaying = service.isPlaying
-            self.duration = spotifyDuration
+            // Only adopt the bridge's duration if it's a real value;
+            // otherwise keep whatever was set from track.durationMs.
+            if spotifyDuration > 0 {
+                self.duration = spotifyDuration
+            }
 
             // Sync time from Spotify only on significant drift (>3s)
             // Local timer is primary source, Spotify corrects drift
@@ -93,13 +97,17 @@ class SongViewModel: ProtocolView {
                 }
             }
 
-            // Auto-advance when track ends
-            // Spotify resets position to 0 when track finishes, so check if we were near end
-            let trackEnded = wasPlaying && !service.isPlaying && spotifyDuration > 0 && (
-                spotifyTime >= spotifyDuration - 1.0 ||
-                (spotifyTime == 0 && self.lastSpotifyPosition >= spotifyDuration - 2.0)
+            // Auto-advance when track ends. The bridge sends an explicit
+            // "track_end" event (forwarded as trackEnded=true). Also keep a
+            // heuristic against self.duration (which we trust from track.durationMs)
+            // since service.currentTrackDuration is unreliable.
+            let explicitEnd = (notification.userInfo?["trackEnded"] as? Bool) == true
+            let heuristicEnd = wasPlaying && !service.isPlaying && self.duration > 0 && (
+                self.currentTime >= self.duration - 1.0 ||
+                (spotifyTime == 0 && self.lastSpotifyPosition >= self.duration - 2.0)
             )
-            if trackEnded {
+            if explicitEnd || heuristicEnd {
+                NSLog("[SongVM] auto-advance (explicit=\(explicitEnd) heuristic=\(heuristicEnd))")
                 self.nextClick()
             }
 
@@ -181,6 +189,7 @@ class SongViewModel: ProtocolView {
     }
 
     func playSpotifyPlaylist(playlistId: String, playlistName: String, imageUrl: String?) {
+        NSLog("[SongVM] playSpotifyPlaylist name=\(playlistName) id=\(playlistId)")
         stopAllPlayback()
 
         isSpotifyPlayback = true
@@ -205,6 +214,7 @@ class SongViewModel: ProtocolView {
     }
 
     func playSpotifyAlbum(albumId: String, albumUri: String, albumName: String, imageUrl: String?) {
+        NSLog("[SongVM] playSpotifyAlbum name=\(albumName) id=\(albumId) uri=\(albumUri)")
         stopAllPlayback()
 
         isSpotifyPlayback = true
@@ -212,11 +222,13 @@ class SongViewModel: ProtocolView {
         currentSpotifyPlaylistName = albumName
         currentSpotifyImageUrl = imageUrl
         currentSpotifyTrackIndex = 0
+        spotifyTracks = []
 
         GlobalState.shared.activeView = .song
 
         Task {
             let tracks = await SpotifyService.shared.fetchAlbumTracks(albumId: albumId)
+            NSLog("[SongVM] playSpotifyAlbum got \(tracks.count) tracks for album=\(albumName)")
             await MainActor.run {
                 // Set album image on all tracks since album tracks don't have it
                 self.spotifyTracks = tracks.map { track in
@@ -231,7 +243,10 @@ class SongViewModel: ProtocolView {
                     )
                 }
                 if !self.spotifyTracks.isEmpty {
+                    NSLog("[SongVM] playSpotifyAlbum starting first track uri=\(self.spotifyTracks[0].uri) name=\(self.spotifyTracks[0].name)")
                     self.waitForPlayerAndPlay(trackIndex: 0)
+                } else {
+                    NSLog("[SongVM] playSpotifyAlbum: no tracks fetched, nothing to play")
                 }
             }
         }

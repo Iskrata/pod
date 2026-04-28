@@ -38,7 +38,7 @@ struct ContentView: View {
   @StateObject private var globalState = GlobalState.shared
 
   private let views: [Screen: any ProtocolView] = [
-    .onboarding: OnboardingViewModel(),
+    .onboarding: GlobalState.shared.onboardingViewModel,
     .mainMenu: GlobalState.shared.mainMenuViewModel,
     .song: GlobalState.shared.songViewModel,
     .albums: GlobalState.shared.albumViewModel,
@@ -81,6 +81,7 @@ struct ContentView: View {
       isPresented: $showSpotifyAlert,
       hasShownSpotifyAlert: $hasShownSpotifyAlert
     ))
+    .modifier(SettingsOpenerModifier(shouldOpen: $globalState.shouldOpenSettings))
   }
 }
 

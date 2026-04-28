@@ -67,6 +67,7 @@ class AlbumViewModel: ProtocolView {
         )
 
         GlobalState.shared.$searchQuery
+            .removeDuplicates()
             .sink { [weak self] query in
                 self?.applySearchFilter(query)
             }
@@ -235,6 +236,9 @@ class AlbumViewModel: ProtocolView {
                 spotifyImageUrl: playlist.imageUrl
             )
         }
+        NSLog("[AlbumVM] loadSpotifyPlaylists count=\(spotifyPlaylists.count)")
+        let uniqueIds = Set(spotifyPlaylists.compactMap { $0.spotifyPlaylistId })
+        NSLog("[AlbumVM]   unique playlist ids=\(uniqueIds.count)")
         albums.append(contentsOf: spotifyPlaylists)
         sortAlbums()
         applyFilterKeepIndex()
@@ -251,6 +255,10 @@ class AlbumViewModel: ProtocolView {
                 spotifyAlbumId: album.id,
                 spotifyAlbumUri: album.uri
             )
+        }
+        NSLog("[AlbumVM] loadSpotifyAlbums count=\(spotifyAlbums.count)")
+        for (i, a) in spotifyAlbums.enumerated() {
+            NSLog("[AlbumVM]   #\(i) name=\(a.name) id=\(a.spotifyAlbumId ?? "nil") uri=\(a.spotifyAlbumUri ?? "nil")")
         }
         albums.append(contentsOf: spotifyAlbums)
         sortAlbums()
@@ -274,9 +282,35 @@ class AlbumViewModel: ProtocolView {
     }
     
     func middleClick() {
-        guard !filteredAlbums.isEmpty else { return }
-        GlobalState.shared.searchQuery = ""
+        NSLog("[AlbumVM] middleClick activeIndex=\(activeIndex) filteredCount=\(filteredAlbums.count)")
+        let lo = max(0, activeIndex - 2)
+        let hi = min(filteredAlbums.count - 1, activeIndex + 2)
+        if hi >= lo {
+            for i in lo...hi {
+                let a = filteredAlbums[i]
+                let kind = a.isSpotifyPlaylist ? "PLST" : (a.isSpotifyAlbum ? "ALBM" : "LOCAL")
+                let id = a.spotifyPlaylistId ?? a.spotifyAlbumId ?? a.path
+                NSLog("[AlbumVM]   neighbor[\(i)\(i == activeIndex ? "*" : "")] \(kind) name=\(a.name) id=\(id)")
+            }
+        }
+        if filteredAlbums.isEmpty {
+            let tab: String?
+            switch GlobalState.shared.sourceFilter {
+            case .spotify: tab = "Spotify"
+            case .radio:   tab = "Radio"
+            case .local:   tab = "General"
+            case .none:    tab = nil
+            }
+            if let tab = tab {
+                GlobalState.shared.preferredSettingsTab = tab
+                GlobalState.shared.shouldOpenSettings = true
+            }
+            return
+        }
+        // Snapshot the selection BEFORE touching searchQuery — clearing
+        // searchQuery resets activeIndex to 0 via the Combine sink.
         let selectedAlbum = filteredAlbums[activeIndex]
+        GlobalState.shared.searchQuery = ""
         print("[AlbumVM] middleClick idx=\(activeIndex) name=\(selectedAlbum.name) isPlaylist=\(selectedAlbum.isSpotifyPlaylist) isAlbum=\(selectedAlbum.isSpotifyAlbum)")
 
         if selectedAlbum.isRadioStation {
@@ -296,12 +330,15 @@ class AlbumViewModel: ProtocolView {
             }
         } else if selectedAlbum.isSpotifyAlbum {
             if let albumId = selectedAlbum.spotifyAlbumId, let albumUri = selectedAlbum.spotifyAlbumUri {
+                NSLog("[AlbumVM] play Spotify album name=\(selectedAlbum.name) id=\(albumId) uri=\(albumUri)")
                 GlobalState.shared.songViewModel.playSpotifyAlbum(
                     albumId: albumId,
                     albumUri: albumUri,
                     albumName: selectedAlbum.name,
                     imageUrl: selectedAlbum.spotifyImageUrl
                 )
+            } else {
+                NSLog("[AlbumVM] Spotify album missing id/uri name=\(selectedAlbum.name) id=\(selectedAlbum.spotifyAlbumId ?? "nil") uri=\(selectedAlbum.spotifyAlbumUri ?? "nil")")
             }
         } else {
             GlobalState.shared.selectedAlbumDir = selectedAlbum.path
@@ -316,6 +353,7 @@ class AlbumViewModel: ProtocolView {
             hapticManager.perform(.generic, performanceTime: .now)
         }
         GlobalState.shared.selectedAlbumDir = filteredAlbums[activeIndex].path
+        NSLog("[AlbumVM] wheelUp -> activeIndex=\(activeIndex) name=\(filteredAlbums[activeIndex].name)")
     }
 
     func wheelDown(){
@@ -325,5 +363,6 @@ class AlbumViewModel: ProtocolView {
             hapticManager.perform(.generic, performanceTime: .now)
         }
         GlobalState.shared.selectedAlbumDir = filteredAlbums[activeIndex].path
+        NSLog("[AlbumVM] wheelDown -> activeIndex=\(activeIndex) name=\(filteredAlbums[activeIndex].name)")
     }
 }

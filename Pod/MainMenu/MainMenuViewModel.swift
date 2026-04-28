@@ -34,17 +34,11 @@ class MainMenuViewModel: ProtocolView {
     func middleClick() {
         switch selectedIndex {
         case 0: // Spotify
-            GlobalState.shared.sourceFilter = .spotify
-            GlobalState.shared.albumViewModel.applyFilter()
-            GlobalState.shared.activeView = .albums
+            enterCategory(.spotify, settingsTab: "Spotify")
         case 1: // Radio
-            GlobalState.shared.sourceFilter = .radio
-            GlobalState.shared.albumViewModel.applyFilter()
-            GlobalState.shared.activeView = .albums
+            enterCategory(.radio, settingsTab: "Radio")
         case 2: // Local
-            GlobalState.shared.sourceFilter = .local
-            GlobalState.shared.albumViewModel.applyFilter()
-            GlobalState.shared.activeView = .albums
+            enterCategory(.local, settingsTab: "General")
         case 3: // Settings
             shouldOpenSettings = true
         default:
@@ -52,8 +46,22 @@ class MainMenuViewModel: ProtocolView {
         }
     }
 
+    private func enterCategory(_ filter: SourceFilter, settingsTab: String) {
+        GlobalState.shared.sourceFilter = filter
+        let albumVM = GlobalState.shared.albumViewModel
+        albumVM.applyFilter()
+        GlobalState.shared.activeView = .albums
+        if albumVM.filteredAlbums.isEmpty {
+            // Auto-open Settings on the relevant tab when the category is empty
+            GlobalState.shared.preferredSettingsTab = settingsTab
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                GlobalState.shared.shouldOpenSettings = true
+            }
+        }
+    }
+
     func menuClick() {}
-    func nextClick() {}
-    func prevClick() {}
+    func nextClick() { wheelDown() }
+    func prevClick() { wheelUp() }
     func playPauseClick() {}
 }

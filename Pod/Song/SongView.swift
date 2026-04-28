@@ -125,24 +125,45 @@ struct ReflectionView: View {
 struct SongProgress: View {
     var currentTime: String
     var duration: String
-    var viewModel: SongViewModel
-    
+    @ObservedObject var viewModel: SongViewModel
+    @State private var pulse = false
+
+    private var isLoading: Bool {
+        viewModel.isSpotifyPlayback && viewModel.spotifyTracks.isEmpty
+    }
+
     var body: some View {
         HStack {
-            Text(currentTime)
+            Text(isLoading ? "" : currentTime)
                 .foregroundColor(.black)
-                .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                .fontWeight(.bold)
                 .frame(width: 40, alignment: .leading)
-            
-            ProgressView(value: viewModel.duration > 0 ? viewModel.currentTime / viewModel.duration : 0)
-                .border(Color.gray, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
-                .cornerRadius(/*@START_MENU_TOKEN@*/3.0/*@END_MENU_TOKEN@*/)
-            
-            Text(duration)
+
+            ZStack {
+                if isLoading {
+                    GeometryReader { geo in
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color.accentColor)
+                            .frame(width: geo.size.width, height: 6)
+                            .opacity(pulse ? 1.0 : 0.35)
+                            .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: pulse)
+                    }
+                    .frame(height: 6)
+                    .border(Color.gray, width: 1)
+                    .cornerRadius(3.0)
+                } else {
+                    ProgressView(value: viewModel.duration > 0 ? viewModel.currentTime / viewModel.duration : 0)
+                        .border(Color.gray, width: 1)
+                        .cornerRadius(3.0)
+                }
+            }
+            .onAppear { pulse = true }
+
+            Text(isLoading ? "" : duration)
                 .foregroundColor(.black)
-                .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                .fontWeight(.bold)
                 .frame(width: 40, alignment: .trailing)
-            
+
         }.padding()
     }
 }
@@ -151,18 +172,27 @@ struct SongInfo: View {
     var title: String
     var artist: String?
     var album: String?
-    
+
+    private func nonEmpty(_ s: String?) -> String? {
+        guard let s = s, !s.isEmpty else { return nil }
+        return s
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(title)
                 .foregroundColor(.black)
                 .font(.system(size: 16, weight: .bold, design: .default))
-            Text(artist ?? "No Artist found")
-                .foregroundColor(.infoGray)
-                .font(.system(size: 11, weight: .bold, design: .default))
-            Text(album ?? "No Album found")
-                .foregroundColor(.infoGray)
-                .font(.system(size: 11, weight: .bold, design: .default))
+            if let a = nonEmpty(artist) {
+                Text(a)
+                    .foregroundColor(.infoGray)
+                    .font(.system(size: 11, weight: .bold, design: .default))
+            }
+            if let al = nonEmpty(album) {
+                Text(al)
+                    .foregroundColor(.infoGray)
+                    .font(.system(size: 11, weight: .bold, design: .default))
+            }
             Spacer()
         }
     }
